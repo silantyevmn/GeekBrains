@@ -11,7 +11,7 @@ import JavaCore.Lesson1.obstacles.*;
 public class Main {
 
     public static void main(String[] args) {
-        Team t=new Team("Команда",8);
+        Team t=new Team("Неудачники",8);
         t.printTeam();
         Obstacle[] obstacles = {new Cross(900), new Wall(1), new Pool(18)};
         Cource c=new Cource(obstacles);
