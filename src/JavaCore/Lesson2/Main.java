@@ -14,11 +14,12 @@ package JavaCore.Lesson2;
 3. В методе main() вызвать полученный метод, обработать возможные исключения MySizeArrayException и MyArrayDataException, и вывести результат расчета.
 */
 public class Main {
-    public static void main(String[] args) throws MyArrayDataException,MyArraySizeException{
-        String[][] arr={{"1","2","3","a"},{"1","2","3","s"},{"1","2","3","4"},{"1","2","3","4"}};
+    public static void main(String[] args) {
+        String[][] arr={{"1","2","3","4"},{"1","2","3","4","5"},{"1","2","3","f"},{"1","2","3","4"}};
         System.out.println("start");
+        int sizeX=4,sizeY=4;
         try {
-            System.out.println(metod1(arr));
+            System.out.println(metod1(arr,sizeX,sizeY));
         }
         catch (MyArraySizeException e){
             e.printStackTrace();
@@ -26,13 +27,17 @@ public class Main {
         catch (MyArrayDataException e){
             e.printStackTrace();
         }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         System.out.println("end");
     }
-    public static int metod1(String[][] arr) throws MyArrayDataException,MyArraySizeException {
+    public static int metod1(String[][] arr,int sizeX,int sizeY) throws MyArrayDataException,MyArraySizeException {
         int sum=0;
         for (int i = 0; i < arr.length; i++) {
+            if(arr.length!=sizeX || arr[i].length!=sizeY)throw new MyArraySizeException(i,arr[i].length,arr[i].length);
             for (int j = 0; j < arr[i].length; j++) {
-                if(arr.length!=4 || arr[i].length!=4)throw new MyArraySizeException(i,j,arr[i].length);
+
                 try {
                     sum+=Integer.parseInt(arr[i][j]);
                 }
