@@ -37,8 +37,7 @@ public class PhoneBook {
         return map.get(name);
     }
 
-    public Object print(){
-        return map.entrySet();
+    public Map<String, HashSet<String>> getMap() {
+        return map;
     }
-
 }
