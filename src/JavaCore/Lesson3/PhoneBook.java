@@ -15,10 +15,10 @@ import java.util.Map;
  * JavaCore.Lesson3
  * Created by Михаил Силантьев on 11.10.2017.
  */
-public class Person {
-    private HashMap<String,HashSet<String>> map;
+public class PhoneBook {
+    private Map<String,HashSet<String>> map;
 
-    public Person() {
+    public PhoneBook() {
         map=new HashMap<>();
     }
 
@@ -33,7 +33,12 @@ public class Person {
         map.put(name,phones);
     }
 
-    public HashSet<String> get (String name){
+    public HashSet<String> get(String name){
         return map.get(name);
     }
+
+    public Object print(){
+        return map.entrySet();
+    }
+
 }
