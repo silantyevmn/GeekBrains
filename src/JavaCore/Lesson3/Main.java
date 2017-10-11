@@ -37,7 +37,7 @@ public class Main {
         pb.add("Петров","02");
 
         System.out.println("Иванов: "+pb.get("Иванов"));
-        System.out.println(pb.print());
+        System.out.println("Телефонный справочник:\n"+pb.getMap().entrySet());
     }
 
 }
