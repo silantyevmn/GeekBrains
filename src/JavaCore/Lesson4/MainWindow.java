@@ -41,13 +41,13 @@ public class MainWindow extends JFrame{
         jText.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                UpdateText();
+                updateText();
             }
         });
         jb1.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                UpdateText();
+                updateText();
             }
         });
 
@@ -61,7 +61,7 @@ public class MainWindow extends JFrame{
         setVisible(true);
     }
 
-    void UpdateText(){
+    void updateText(){
         String text=jText.getText();
         if(text.hashCode()==0 || text==""){
             System.out.println("Вы не ввели текст");
