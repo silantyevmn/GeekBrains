@@ -80,8 +80,8 @@ public class Main5 {
         }
         print(a,"разбивка");
 
-        MyThread[] thread=new MyThread[COUNT_THREAD];
         a=System.currentTimeMillis();
+        MyThread[] thread=new MyThread[COUNT_THREAD];
         for (int i = 0; i < thread.length; i++) {
             try {
             thread[i]=new MyThread("поток-"+i,floats[i],i*tempSizeArr);
