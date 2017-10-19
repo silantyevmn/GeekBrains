@@ -40,7 +40,7 @@ import java.util.Arrays;
  */
 public class Main5 {
     private static final int SIZE = 10000000; //размер массива
-    private static final int COUNT_THREAD = 11; // кол-во потоков
+    private static final int COUNT_THREAD = 4; // кол-во потоков
     public static int VALUE_DEFAULT_ARR=1; // заполнить массив 1
     public static float[] arr = new float[SIZE]; // исходный массив
     public static float[] singleTreadArr = new float[SIZE]; //массив после прохода в один поток
