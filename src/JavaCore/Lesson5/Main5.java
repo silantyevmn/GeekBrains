@@ -40,7 +40,7 @@ import java.util.Arrays;
  */
 public class Main5 {
     private static final int SIZE = 10000000; //размер массива
-    private static final int COUNT_THREAD = 4; // кол-во потоков
+    private static final int COUNT_THREAD = 11; // кол-во потоков
     public static int VALUE_DEFAULT_ARR=1; // заполнить массив 1
     public static float[] arr = new float[SIZE]; // исходный массив
     public static float[] singleTreadArr = new float[SIZE]; //массив после прохода в один поток
@@ -75,9 +75,12 @@ public class Main5 {
         long a=System.currentTimeMillis();
         float[][] floats=new float[COUNT_THREAD][tempSizeArr];
         for (int i = 0; i < floats.length; i++) {
-            floats[i]=new float[tempSizeArr];
-            System.arraycopy(arr, i*tempSizeArr, floats[i], 0, tempSizeArr);
-        }
+            if(i==floats.length-1) floats[COUNT_THREAD-1]=new float[tempSizeArr+(SIZE-(tempSizeArr*COUNT_THREAD))];
+            else {
+                floats[i] = new float[tempSizeArr];
+            }
+            System.arraycopy(arr, i * tempSizeArr, floats[i], 0, floats[i].length);
+            }
         print(a,"разбивка");
 
         a=System.currentTimeMillis();
@@ -97,7 +100,7 @@ public class Main5 {
 
         a=System.currentTimeMillis();
         for (int i = 0; i < floats.length; i++) {
-            System.arraycopy(thread[i].getArr(), 0, multiTreadArr, tempSizeArr*i, tempSizeArr);
+            System.arraycopy(thread[i].getArr(), 0, multiTreadArr, tempSizeArr*i, floats[i].length);
         }
         print(a,"склейка");
         multiTreadTime=System.currentTimeMillis()-startTime;
