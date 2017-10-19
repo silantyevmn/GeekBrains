@@ -83,11 +83,12 @@ public class Main5 {
         a=System.currentTimeMillis();
         MyThread[] thread=new MyThread[COUNT_THREAD];
         for (int i = 0; i < thread.length; i++) {
-            try {
             thread[i]=new MyThread("поток-"+i,floats[i],i*tempSizeArr);
             thread[i].start();
+        }
+        for (int i = 0; i < thread.length; i++) {
+            try {
                 thread[i].join();
-                //print(a,"расчет "+i);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -96,8 +97,7 @@ public class Main5 {
 
         a=System.currentTimeMillis();
         for (int i = 0; i < floats.length; i++) {
-            if(i==0) System.arraycopy(thread[i].getArr(), 0, multiTreadArr, 0, tempSizeArr);
-            else System.arraycopy(thread[i].getArr(), 0, multiTreadArr, tempSizeArr*i, tempSizeArr);
+            System.arraycopy(thread[i].getArr(), 0, multiTreadArr, tempSizeArr*i, tempSizeArr);
         }
         print(a,"склейка");
         multiTreadTime=System.currentTimeMillis()-startTime;
