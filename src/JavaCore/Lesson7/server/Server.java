@@ -1,61 +1,79 @@
-package Lesson7.server;
+package JavaCore.Lesson7.server;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Scanner;
+import java.util.*;
 
 /**
- * JavaCore.Lesson7
+ * JavaCore.JavaCore.Lesson7
  * Created by Михаил Силантьев on 24.10.2017.
  */
 public class Server {
-    public static void main(String[] args) {
-        ServerSocket server = null;
-        Socket socket = null;
-        Thread t1 = null;
-        try {
-            server = new ServerSocket(8189);
-            System.out.println("Сервер запущен, ждем клиентов");
-            socket = server.accept(); //сервер ждет коннектов
-            System.out.println("Клиент подключился!");
-            Scanner scanner = new Scanner(System.in);
-            Scanner in = new Scanner(socket.getInputStream());
-            PrintWriter out = new PrintWriter(socket.getOutputStream());
-            t1 = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (true) {
-                        String text = scanner.nextLine();
-                        if (text.equals("")) continue;
-                        out.println("сервер: " + text);
-                        out.flush();
-                    }
-                }
-            });
-            t1.start();
-            while (true) {
-                String str = in.nextLine();
-                System.out.println("клиент: " + str);
-                out.println("клиент: " + str); //cкладывается в буфер
-                out.flush();
-            }
-        } catch (IOException e) {
-            System.out.println("Ошибка инициализации сервера");
-            //e.printStackTrace();
-        } finally {
-            try {
-                server.close();
-                t1.interrupt();
-                t1 = null;
-                System.out.println("Сервер закрылся");
-                System.exit(-1);
-            } catch (Exception e) {
-                System.out.println("Сервер не смог закрыться");
-                //e.printStackTrace();
+   private final int PORT=8190;
+   Vector<ClientHandler> clients;
+    ServerSocket serverSocket=null;
+    Socket socket=null;
+    AuthService authService;
+
+    public AuthService getAuthService(){
+        return authService;
+    }
+
+   public Server(){
+       clients=new Vector<>();
+       try {
+           serverSocket=new ServerSocket(PORT);
+           //авторизация
+           authService = new BaseAuthService();
+           authService.start();
+           System.out.println("Сервер запущен,ждем подключений");
+           while (true){
+               socket=serverSocket.accept();
+               clients.add(new ClientHandler(socket,this));
+               System.out.println("Клиент подключился");
+           }
+       } catch (IOException e) {
+           e.printStackTrace();
+       }finally {
+           try {
+               serverSocket.close();
+               socket.close();
+           } catch (IOException e) {
+               e.printStackTrace();
+           }
+       }
+
+   }
+    public void broadcast(String msg){
+        for(ClientHandler c: clients){
+            c.sendMessage(msg);
+        }
+    }
+    public void unSubscribeMe(ClientHandler c){
+        clients.remove(c);
+    }
+    public boolean isNickBusy(String nick){
+        System.out.println(nick);
+        for(ClientHandler c: clients){
+            if(c.getName().equals(nick)) return true;
+        }
+        return false;
+    }
+
+    public void getCliensOnline(String text) {
+        for(ClientHandler c: clients){
+            text+=c.getName()+" ";
+        }
+        broadcast(text);
+    }
+
+    public void privateSend(String name, String text) {
+        for (ClientHandler c : clients) {
+            if(c.getName().equals(name)){
+                c.sendMessage("приват от "+name+" "+text);
             }
         }
-
     }
 }
