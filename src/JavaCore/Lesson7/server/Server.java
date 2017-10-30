@@ -69,11 +69,13 @@ public class Server {
         broadcast(text);
     }
 
-    public void privateSend(String name, String text) {
+    public void privateSend(String name, String text,ClientHandler clientHandler) {
+        String tempText=clientHandler.getName()+" to "+name+" :"+text;
         for (ClientHandler c : clients) {
             if(c.getName().equals(name)){
-                c.sendMessage("приват от "+name+" "+text);
+                c.sendMessage(tempText);
             }
         }
+        clientHandler.sendMessage(tempText);
     }
 }
