@@ -41,19 +41,15 @@ public class Lesson1 {
 
         //3.
         Box <Apple> box1=new Box("box1");
-        box1.add(new Apple());
-        box1.add(new Apple());
-        box1.add(new Apple());
+        box1.add(new Apple(),new Apple(),new Apple());
         box1.print();
 
         Box <Orange> box2=new Box("box2");
-        box2.add(new Orange());
-        box2.add(new Orange());
+        box2.add(new Orange(),new Orange());
         box2.print();
 
         Box<Apple> box3=new Box<>("box3");
-        box3.add(new Apple());
-        box3.add(new Apple());
+        box3.add(new Apple(),new Apple());
         box3.print();
         // сравнение про весу фруктов
         System.out.printf(BOX_COMPARE,box1.getName(),box2.getName(),box1.compare(box2));
