@@ -1,0 +1,126 @@
+/**
+ * ru.silantyevmn.java_core_professinal
+ * Created by Михаил Силантьев on 15.11.2017.
+ *
+ public class Lesson1 {
+     private final static String BOX_COMPARE = "Сравнение коробок %s и %s, результат: %s\n";
+     private final static String BOX_POOR = "Пересыпаем из %s в %s ,результат: %s\n";
+
+     public static void main(String[] args) {
+         String[] arr = {"10", "20", "30","40","50"};
+         //1.
+         System.out.println(Arrays.toString(arr));
+         swapsArr(arr); // меняем массив местами
+
+         //2.
+         ArrayList newArr=convertToArrayList(arr); //преобразует массив в ArrayList
+         System.out.println(newArr);
+
+         //3.
+         Box <Apple> box1=new Box("box1");
+         box1.add(new Apple(),new Apple(),new Apple());
+         box1.print();
+
+         Box <Orange> box2=new Box("box2");
+         box2.add(new Orange(),new Orange());
+         box2.print();
+
+         Box<Apple> box3=new Box<>("box3");
+         box3.add(new Apple(),new Apple());
+         box3.print();
+         // сравнение про весу фруктов
+         System.out.printf(BOX_COMPARE,box1.getName(),box2.getName(),box1.compare(box2));
+         System.out.printf(BOX_COMPARE,box2.getName(),box3.getName(),box2.compare(box3));
+         //пересыпаем коробку c яблоками
+         System.out.printf(BOX_POOR,box1.getName(),box3.getName(),box1.addAll(box3));
+         box1.print();
+         box3.print();
+
+         //box2.addAll(box1);
+     }
+
+     private static <T> ArrayList convertToArrayList(T[] arr) {
+         ArrayList<T> newArr=new ArrayList<>();
+         for (int i = 0; i < arr.length; i++) {
+             newArr.add(arr[i]);
+         }
+         return newArr;
+     }
+
+     private static <T> void swapsArr (T[] arr) {
+         for (int i = 0; i < arr.length; i++) {
+             for (int j = i+1; j < arr.length; j++) {
+                 T temp = arr[j];
+                 arr[j] = arr[i];
+                 arr[i] = temp;
+             }
+         }
+     }
+
+ }
+
+public class  Box <T extends Fruit>{
+    private ArrayList<T> arrayList = new ArrayList<>();
+    private String name;
+
+    public Box(String name) {
+        this.name = name;
+    }
+
+   void add(T... fruit) {
+           for (int i = 0; i < fruit.length; i++) {
+               arrayList.add(fruit[i]);
+           }
+       }
+
+    boolean addAll(Box<T> box){
+           this.arrayList.addAll(box.arrayList);
+           box.arrayList.clear();
+           return true;
+    }
+
+    float getWeight(){
+        float result=0;
+        for (T fruit : arrayList) {
+            result+=fruit.getWeight();
+        }
+        return result;
+    }
+    boolean compare(Box<?> box) {
+           return Math.abs(this.getWeight()-box.getWeight())<0.000001;
+       }
+
+    public String getName() {
+        return name;
+    }
+
+    void print(){
+        System.out.println( this.name+":"+Fruit.name +"-"+getWeight());
+    }
+}
+
+public class Apple extends Fruit {
+    public Apple() {
+        super(1.f,"Яблоки");
+    }
+}
+public class Orange extends Fruit {
+    public Orange() {
+        super(1.5f,"Апельсины");
+    }
+}
+
+public class Fruit {
+    private float weight;
+    public static String name;
+    public String getName() {
+        return name;
+    }
+    public float getWeight() {
+        return weight;
+    }
+    public Fruit(float weight, String name) {
+        this.weight = weight;
+        this.name=name;
+    }
+}
