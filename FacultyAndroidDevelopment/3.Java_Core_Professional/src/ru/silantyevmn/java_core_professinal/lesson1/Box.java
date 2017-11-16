@@ -25,9 +25,9 @@ public class Box<T extends Fruit> {
 //        }
     }
 
-    boolean addAll(Box<T> box) {
-        this.arrayList.addAll(box.arrayList);
-        box.arrayList.clear();
+    boolean addAll(Box<? super T> box) {
+        box.arrayList.addAll(this.arrayList);
+        this.arrayList.clear();
         return true;
     }
 
@@ -40,7 +40,7 @@ public class Box<T extends Fruit> {
     }
 
     boolean compare(Box<?> box) {
-        return Math.abs(this.getWeight()-box.getWeight())<0.000001;
+        return Math.abs(this.getWeight()-box.getWeight())<0.000001f;
     }
 
     public String getName() {
