@@ -19,9 +19,10 @@ public class Box<T extends Fruit> {
     }
 
     void add(T... fruit) {
-        for (int i = 0; i < fruit.length; i++) {
-            arrayList.add(fruit[i]);
-        }
+       arrayList.addAll(Arrays.asList(fruit));
+//        for (int i = 0; i < fruit.length; i++) {
+//            arrayList.add(fruit[i]);
+//        }
     }
 
     boolean addAll(Box<T> box) {
