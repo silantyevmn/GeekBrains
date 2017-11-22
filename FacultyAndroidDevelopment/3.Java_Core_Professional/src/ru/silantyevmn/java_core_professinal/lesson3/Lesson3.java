@@ -6,7 +6,7 @@ import java.util.*;
 
 /**
  * ru.silantyevmn.java_core_professinal.lesson3
- * Created by Михаил Силантьев on 12.11.2017.
+ * Created by Михаил Силантьев on 22.11.2017.
  * <p>
  * 1. Прочитать файл (около 50 байт) в байтовый массив и вывести этот массив в консоль;
  * 2. Последовательно сшить 5 файлов в один (файлы также ~100 байт).
@@ -20,133 +20,134 @@ import java.util.*;
  * Чтобы не было проблем с кодировкой используйте латинские буквы.
  */
 public class Lesson3 {
-    public static final String FILE_PATH = "files/";
-    public static final int CHAR_PAGE = 1800;
+    public static final String FILE_PATH = "files"; //папка для хранения файлов
+    public static final int BUFFER_SIZE = 8 * 1024; //размер буффера
     public static ArrayList<InputStream> files = new ArrayList<>();
+    public static InputStream in = null;
+    public static OutputStream out = null;
 
     public static void main(String[] args) throws Exception {
         //1
         String text = "Hello, world!";
-        String file1 = FILE_PATH + "0.txt";
+        String file1 = FILE_PATH + "/50b.txt";
         newFile(text, file1);
         readFile(file1);
         System.out.println();
         //2
-        addFileArrayList(file1, 5);
-        String file2 = FILE_PATH + "full.txt";
-        sequenceFiles(file2);// склеиваем 5 файлов
+        addFileToArrayList(file1, 5); //добавить в массив 5 файлов
+        String file2 = FILE_PATH + "/5file.txt";
+        sequenceFiles(file2);// склеиваем 5 файлов и записываем в file2
         readFile(file2);
         System.out.println();
         //3
-        String file3 = FILE_PATH+"10mb.txt";
-        addFileArrayList(file1, 1000);//увеличиваем коллекцию на 1000файлов
+        String file3 = FILE_PATH + "/10mb.txt";
+        addFileToArrayList(file1, 1000);//увеличиваем коллекцию на 1000файлов
         sequenceFiles(file3); //склеиваем 1000 и записываем в file3
         pageReadFile(file3); //вывод постранично
     }
 
-    private static void pageReadFile(String nameFile) {
-        try (InputStream in = new FileInputStream(nameFile);
-             ByteArrayOutputStream book = new ByteArrayOutputStream()) {
-            byte[] buff = new byte[CHAR_PAGE];
-            int len;
-            while ((len = in.read(buff)) > 0) {
-                book.write(buff, 0, len);
+    private static void newFile(String text, String fileName) {
+        deleteFile(fileName);
+        try {
+            out = new BufferedOutputStream(new FileOutputStream(fileName), BUFFER_SIZE);
+            out.write(text.getBytes());
+        } catch (IOException e) {
+            System.out.println("Ошибка при открытии/записи файла." + e.getMessage());
+        } finally {
+            closeOutputStream(out, fileName);
+        }
+    }
+
+    private static void addFileToArrayList(String fileName, int count) {
+        try {
+            files.clear();
+            for (int i = 1; i <= count; i++) {
+                files.add(new FileInputStream(fileName));
             }
-            int page = 0;
-            int numberOfPages = book.size() / CHAR_PAGE;
-            int pages;
-            int enterPage;
-            int offset;
-            int turnThePages;
-            Scanner input = new Scanner(System.in);
-            while (true) {
-                pages = numberOfPages;
-                do {
-                    System.out.printf("%n%nвведите номер страницы: 1 - %d%n", pages + 1);
-                    page = input.nextInt();
-                } while (page < 1 && page < pages);
+        } catch (FileNotFoundException e) {
+            System.out.println("Файл не найден! " + fileName + " " + e.getMessage());
+        }
+    }
 
-                enterPage = page;
-                offset = (enterPage - 1) * CHAR_PAGE;
-                turnThePages = offset + CHAR_PAGE;
+    private static void pageReadFile(String fileName) {
+        final int PAGE_SIZE = 1800; //количество символов на странице
+        byte[] buff=new byte[PAGE_SIZE];
+        Scanner scanner = new Scanner(System.in);
 
-                byte[] bytes = book.toByteArray();
-                len = bytes.length;
+        int page = 0; // выбранная страница
+        int pages=0; // всего страниц
+        try (RandomAccessFile raf = new RandomAccessFile(fileName, "r")) {
+            pages = (int)raf.length() / PAGE_SIZE;
+            do {
+                System.out.printf("%nвведите номер страницы: 1 - %d%n", pages+1);
+                page = scanner.nextInt()-1;
+            } while (page < 0 && page < pages);
+            raf.seek(page*PAGE_SIZE); //переводим курсор к выбранной странице
+            raf.read(buff);// считываем данные выбранной страницы в массив
+            System.out.println(new String(buff));
 
-                while (offset != turnThePages && offset < len) {
-                    System.out.print((char) bytes[offset]);
-                    offset++;
-                }
-            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static void addFileArrayList(String inNameFile, int count) throws IOException {
-        files.clear();
-        for (int i = 1; i <= count; i++) {
-            files.add(new FileInputStream(inNameFile));
-        }
-    }
-
-    private static void sequenceFiles(String outNameFile) throws IOException {
-        Enumeration<InputStream> enumeration = Collections.enumeration(files);
-        SequenceInputStream in = new SequenceInputStream(enumeration);
-        FileOutputStream out = new FileOutputStream(outNameFile);
-        int x;
-        while ((x = in.read()) != -1) {
-            out.write((char) x);
-        }
-        in.close();
-        out.close();
-    }
-
-    private static void deleteFile(String nameFile) {
+    private static void sequenceFiles(String fileName) throws IOException {
         try {
-            File file = new File(nameFile);
-            if (file.exists()) file.delete(); //удалить файл, если есть
-        } catch (Exception e) {
-            System.out.println("Проблема с файлом." + e.getMessage());
-        }
-    }
-
-    private static void newFile(String text, String nameFile) {
-        OutputStream out = null;
-        deleteFile(nameFile);
-        try {
-            out = new BufferedOutputStream(new FileOutputStream(nameFile));
-            for (int i = 0; i < text.length(); i++) {
-                out.write(text.charAt(i));
+            Enumeration<InputStream> enumeration = Collections.enumeration(files);
+            in = new SequenceInputStream(enumeration);
+            out = new FileOutputStream(fileName);
+            byte[] buff = new byte[BUFFER_SIZE];
+            int x;
+            while ((x = in.read(buff)) > 0) {
+                out.write(buff,0,x);
             }
-            out.close();
         } catch (IOException e) {
-            System.out.println("Ошибка при открытии/записи файла." + e.getMessage());
+            System.out.println("Ошибка при склеивании файлов! " + fileName + " " + e.getMessage());
         } finally {
-            try {
-                out.close();
-            } catch (IOException e) {
-                System.out.println("Ошибка при закрытия файла." + e.getMessage());
-            }
+            closeOutputStream(out, fileName);
+            closeInputStream(in, fileName);
         }
     }
 
-    private static void readFile(String nameFile) {
-        InputStream in = null;
+    private static void readFile(String fileName) {
         try {
-            in = new BufferedInputStream(new FileInputStream(nameFile));
+            in = new BufferedInputStream(new FileInputStream(fileName), BUFFER_SIZE);
             int x;
             while ((x = in.read()) != -1) {
                 System.out.print((char) x);
             }
         } catch (IOException e) {
-            System.out.println("Ошибка при открытии/чтения файла." + e.getMessage());
-            e.printStackTrace();
+            System.out.println("Ошибка при открытии/чтения файла." + fileName + " " + e.getMessage());
+        } finally {
+            closeInputStream(in, fileName);
         }
+    }
+
+    private static void closeInputStream(InputStream in, String fileName) {
         try {
-            in.close();
+            if (in != null) in.close();
+            else System.out.println("Ошибка! Поток inputStream null! " + fileName);
         } catch (IOException e) {
-            System.out.println("Ошибка при закрытия файла." + e.getMessage());
+            System.out.println("Ошибка при закрытии потока inputStream! " + fileName + " " + e.getMessage());
+        }
+    }
+
+    public static void closeOutputStream(OutputStream out, String fileName) {
+        try {
+            if (out != null) out.close();
+            else System.out.println("Ошибка! Поток OutputStream null! " + fileName);
+        } catch (IOException e) {
+            System.out.println("Ошибка при закрытии потока OutputStream! " + fileName + " " + e.getMessage());
+            //e.printStackTrace();
+        }
+    }
+
+    private static void deleteFile(String fileName) {
+        try {
+            File file = new File(fileName);
+            if (file.exists()) file.delete(); //удалить файл, если есть
+        } catch (Exception e) {
+            System.out.println("Ошибка при удалении файла! " + fileName + e.getMessage());
         }
     }
 
