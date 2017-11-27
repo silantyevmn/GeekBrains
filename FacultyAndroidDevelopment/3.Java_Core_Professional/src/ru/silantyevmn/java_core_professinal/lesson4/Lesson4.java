@@ -1,13 +1,12 @@
 package ru.silantyevmn.java_core_professinal.lesson4;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * ru.silantyevmn.java_core_professinal.lesson4
- * Created by Михаил Силантьев on 15.11.2017.
+ * Created by Михаил Силантьев on 27.11.2017.
  * <p>
  * 1. Создать три потока, каждый из которых выводит определенную букву (A, B и C) 5 раз, порядок должен быть именно ABСABСABС.
  * Используйте wait/notify/notifyAll.
@@ -19,48 +18,144 @@ import java.io.IOException;
  * при сканировании тоже самое только "отсканировано...", вывод в консоль все также с периодом в 50 мс.)
  */
 public class Lesson4 {
-    public static void main(String[] args) {
+    private volatile static char currentChar = 'A';
+    public static DataOutputStream out = null;
+
+    public static void main(String[] args) throws InterruptedException {
         //1
-        Object monitor = new Object();
-        MyThread t1 = new MyThread(monitor, 'A', 'B');
-        MyThread t2 = new MyThread(monitor, 'B', 'C');
-        MyThread t3 = new MyThread(monitor, 'C', 'A');
-        try {
-            t1.join();
-            t2.join();
-            t3.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        Lesson4 monitor = new Lesson4();
+        Thread t1 = new Thread(() -> {
+            printToChar(monitor, 'A', 'B');
+        });
+        Thread t2 = new Thread(() -> {
+            printToChar(monitor, 'B', 'C');
+        });
+        Thread t3 = new Thread(() -> {
+            printToChar(monitor, 'C', 'A');
+        });
+        t1.start();
+        t2.start();
+        t3.start();
+        t1.join();
+        t2.join();
+        t3.join();
+        System.out.println("\n*********************");
 
         //2
-        System.out.println();
-        Object monitor2 = new Object();
-        FileOutputStream out = null;
         try {
-            out = new FileOutputStream(new File("1.txt"));
-            FileWriter f1 = new FileWriter(monitor2, out, 'a');
-            f1.join();
-            FileWriter f2 = new FileWriter(monitor2, out, 'b');
-            f2.join();
-            FileWriter f3 = new FileWriter(monitor2, out, 'c');
-            f3.join();
-            out.close();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            out = new DataOutputStream(new FileOutputStream("1.txt"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+        }
+        Thread thWrite1 = new Thread(() -> {
+            monitor.fileWriterText(out, "пишет поток №1 \n");
+        });
+        Thread thWrite2 = new Thread(() -> {
+            monitor.fileWriterText(out, "пишет поток №2 \n");
+        });
+        Thread thWrite3 = new Thread(() -> {
+            monitor.fileWriterText(out, "пишет поток №3 \n");
+        });
+        thWrite1.start();
+        thWrite2.start();
+        thWrite3.start();
+        thWrite1.join();
+        thWrite2.join();
+        thWrite3.join();
+        try {
+            out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //3
-        System.out.println();
+        System.out.println("*********************");
+
+        //3 //todo Не совсем понял конечно, но нашел в инете
         Mfy mfy = new Mfy();
-        new Thread(()-> {
-            mfy.print();
-        }).start();
-        new Thread(()-> {
-            mfy.scan();
-        }).start();
+        mfy.scan("java",20);
+        mfy.scan("java2",20);
+        mfy.print("рецепты",15);
+        mfy.print("рецепты2",5);
+        mfy.shutDown();
+    }
+
+    private void fileWriterText(DataOutputStream out, String text) {
+        try {
+            for (int i = 0; i < 10; i++) {
+                out.writeUTF(text);
+                System.out.print(text);
+                Thread.sleep(20);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private static void printToChar(Object monitor, char letter1, char letter2) {
+        synchronized (monitor) {
+            try {
+                for (int i = 0; i < 5; i++) {
+                    while (currentChar != letter1) {
+                        monitor.wait();
+                    }
+                    System.out.print(currentChar);
+                    currentChar = letter2;
+                    monitor.notifyAll();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+}
+
+class Mfy {
+    private ExecutorService servicePrint = null;
+    private ExecutorService serviceScan = null;
+
+    Mfy() {
+        servicePrint = Executors.newFixedThreadPool(1);
+        serviceScan = Executors.newFixedThreadPool(1);
+    }
+
+    public void print(String text,int page) {
+        servicePrint.execute(() -> {
+            for (int i = 1; i <= page; i++) {
+                System.out.println("Печать " +text+ " страница-"+i);
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println("************\n"+text+"-"+page+" стр. отпечатанно.");
+        });
+
+    }
+
+    public void scan(String text,int page) {
+        serviceScan.execute(() -> {
+            for (int i = 1; i <= page; i++) {
+                System.out.println("Сканер " +text+ " страница "+i);
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println("************\n"+text+"-"+page+" стр. отсканированно.");
+        });
+
+    }
+
+    public void shutDown(){
+        serviceScan.shutdown();
+        servicePrint.shutdown();
     }
 }
+
+
