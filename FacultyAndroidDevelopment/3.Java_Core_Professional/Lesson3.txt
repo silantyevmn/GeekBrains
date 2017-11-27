@@ -1,0 +1,148 @@
+/**
+ * ru.silantyevmn.java_core_professinal.lesson3
+ * Created by Михаил Силантьев on 22.11.2017.
+ * <p>
+ * 1. Прочитать файл (около 50 байт) в байтовый массив и вывести этот массив в консоль;
+ * 2. Последовательно сшить 5 файлов в один (файлы также ~100 байт).
+ * <p>
+ * Может пригодиться следующая конструкция:
+ * ArrayList<InputStream> al = new ArrayList<>();
+ * ...
+ * Enumeration<InputStream> e = Collections.enumeration(al);
+ * 3. Написать консольное приложение, которое умеет постранично читать текстовые файлы (размером > 10 mb), вводим страницу, программа выводит ее в консоль (за страницу можно принять 1800 символов). Время чтения файла должно находится в разумных пределах (программа не должна загружаться дольше 10 секунд), ну и чтение тоже не должно занимать >5 секунд.
+ * <p>
+ * Чтобы не было проблем с кодировкой используйте латинские буквы.
+ */
+public class Lesson3 {
+    public static final String FILE_PATH = "files"; //папка для хранения файлов
+    public static final int BUFFER_SIZE = 8 * 1024; //размер буффера
+    public static ArrayList<InputStream> files = new ArrayList<>();
+    public static InputStream in = null;
+    public static OutputStream out = null;
+
+    public static void main(String[] args) throws Exception {
+        //1
+        String text = "Hello, world!";
+        String file1 = FILE_PATH + "/50b.txt";
+        newFile(text, file1);
+        readFile(file1);
+        System.out.println();
+        //2
+        addFileToArrayList(file1, 5); //добавить в массив 5 файлов
+        String file2 = FILE_PATH + "/5file.txt";
+        sequenceFiles(file2);// склеиваем 5 файлов и записываем в file2
+        readFile(file2);
+        System.out.println();
+        //3
+        String file3 = FILE_PATH + "/10mb.txt";
+        addFileToArrayList(file1, 1000);//увеличиваем коллекцию на 1000файлов
+        sequenceFiles(file3); //склеиваем 1000 и записываем в file3
+        pageReadFile(file3); //вывод постранично
+    }
+
+    private static void newFile(String text, String fileName) {
+        deleteFile(fileName);
+        try {
+            out = new BufferedOutputStream(new FileOutputStream(fileName), BUFFER_SIZE);
+            out.write(text.getBytes());
+        } catch (IOException e) {
+            System.out.println("Ошибка при открытии/записи файла." + e.getMessage());
+        } finally {
+            closeOutputStream(out, fileName);
+        }
+    }
+
+    private static void addFileToArrayList(String fileName, int count) {
+        try {
+            files.clear();
+            for (int i = 1; i <= count; i++) {
+                files.add(new FileInputStream(fileName));
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Файл не найден! " + fileName + " " + e.getMessage());
+        }
+    }
+
+    private static void pageReadFile(String fileName) {
+        final int PAGE_SIZE = 1800; //количество символов на странице
+        byte[] buff=new byte[PAGE_SIZE];
+        Scanner scanner = new Scanner(System.in);
+
+        int page = 0; // выбранная страница
+        int pages=0; // всего страниц
+        try (RandomAccessFile raf = new RandomAccessFile(fileName, "r")) {
+            pages = (int)raf.length() / PAGE_SIZE;
+            do {
+                System.out.printf("%nвведите номер страницы: 1 - %d%n", pages+1);
+                page = scanner.nextInt()-1;
+            } while (page < 0 && page < pages);
+            raf.seek(page*PAGE_SIZE); //переводим курсор к выбранной странице
+            raf.read(buff);// считываем данные выбранной страницы в массив
+            System.out.println(new String(buff));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void sequenceFiles(String fileName) throws IOException {
+        try {
+            Enumeration<InputStream> enumeration = Collections.enumeration(files);
+            in = new SequenceInputStream(enumeration);
+            out = new FileOutputStream(fileName);
+            byte[] buff = new byte[BUFFER_SIZE];
+            int x;
+            while ((x = in.read(buff)) > 0) {
+                out.write(buff,0,x);
+            }
+        } catch (IOException e) {
+            System.out.println("Ошибка при склеивании файлов! " + fileName + " " + e.getMessage());
+        } finally {
+            closeOutputStream(out, fileName);
+            closeInputStream(in, fileName);
+        }
+    }
+
+    private static void readFile(String fileName) {
+        try {
+            in = new BufferedInputStream(new FileInputStream(fileName), BUFFER_SIZE);
+            int x;
+            while ((x = in.read()) != -1) {
+                System.out.print((char) x);
+            }
+        } catch (IOException e) {
+            System.out.println("Ошибка при открытии/чтения файла." + fileName + " " + e.getMessage());
+        } finally {
+            closeInputStream(in, fileName);
+        }
+    }
+
+    private static void closeInputStream(InputStream in, String fileName) {
+        try {
+            if (in != null) in.close();
+            else System.out.println("Ошибка! Поток inputStream null! " + fileName);
+        } catch (IOException e) {
+            System.out.println("Ошибка при закрытии потока inputStream! " + fileName + " " + e.getMessage());
+        }
+    }
+
+    public static void closeOutputStream(OutputStream out, String fileName) {
+        try {
+            if (out != null) out.close();
+            else System.out.println("Ошибка! Поток OutputStream null! " + fileName);
+        } catch (IOException e) {
+            System.out.println("Ошибка при закрытии потока OutputStream! " + fileName + " " + e.getMessage());
+            //e.printStackTrace();
+        }
+    }
+
+    private static void deleteFile(String fileName) {
+        try {
+            File file = new File(fileName);
+            if (file.exists()) file.delete(); //удалить файл, если есть
+        } catch (Exception e) {
+            System.out.println("Ошибка при удалении файла! " + fileName + e.getMessage());
+        }
+    }
+
+}
