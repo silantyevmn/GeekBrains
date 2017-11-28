@@ -69,13 +69,12 @@ public class Lesson4 {
         }
         System.out.println("*********************");
 
-        //3 //todo Не совсем понял конечно, но нашел в инете
+        //3
         Mfy mfy = new Mfy();
         mfy.scan("java",20);
         mfy.scan("java2",20);
         mfy.print("рецепты",15);
         mfy.print("рецепты2",5);
-        mfy.shutDown();
     }
 
     private void fileWriterText(DataOutputStream out, String text) {
@@ -114,47 +113,40 @@ public class Lesson4 {
 }
 
 class Mfy {
-    private ExecutorService servicePrint = null;
-    private ExecutorService serviceScan = null;
-
-    Mfy() {
-        servicePrint = Executors.newFixedThreadPool(1);
-        serviceScan = Executors.newFixedThreadPool(1);
-    }
+    private Object monitorPrint=new Object();
+    private Object monitorScan=new Object();
 
     public void print(String text,int page) {
-        servicePrint.execute(() -> {
-            for (int i = 1; i <= page; i++) {
-                System.out.println("Печать " +text+ " страница-"+i);
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        new Thread(() -> {
+            synchronized (monitorPrint) {
+                for (int i = 1; i <= page; i++) {
+                    System.out.println("Печать " + text + " страница-" + i);
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
+                System.out.println("************\n" + text + "-" + page + " стр. отпечатанно.");
             }
-            System.out.println("************\n"+text+"-"+page+" стр. отпечатанно.");
-        });
+        }).start();
 
     }
 
     public void scan(String text,int page) {
-        serviceScan.execute(() -> {
-            for (int i = 1; i <= page; i++) {
-                System.out.println("Сканер " +text+ " страница "+i);
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            new Thread(() -> {
+                synchronized (monitorScan) {
+                    for (int i = 1; i <= page; i++) {
+                        System.out.println("Сканер " +text+ " страница "+i);
+                        try {
+                            Thread.sleep(50);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    System.out.println("************\n"+text+"-"+page+" стр. отсканированно.");
                 }
-            }
-            System.out.println("************\n"+text+"-"+page+" стр. отсканированно.");
-        });
-
-    }
-
-    public void shutDown(){
-        serviceScan.shutdown();
-        servicePrint.shutdown();
+            }).start();
     }
 }
 
