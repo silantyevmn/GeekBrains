@@ -1,5 +1,6 @@
 package ru.silantyevmn;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
@@ -19,6 +20,7 @@ public class Map {
     }
 
     public boolean checkSpaceIsEmpty(float x,float y){
+        if (x < 0 || x > Gdx.graphics.getWidth()) return false;
         int cellX=(int)(x/40);
         int cellY=(int)(y/40);
         return IsCellEmpty(cellX,cellY);
