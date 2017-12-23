@@ -26,7 +26,7 @@ public class MyGdxGame extends ApplicationAdapter {
         map.generateMap();
         hero = new Hero(map, 200, 300);
         textureAsteroid = new Texture("asteroid64.png");
-        trashes = new Trash[50];
+        trashes = new Trash[100];
         for (int i = 0; i < trashes.length; i++) {
             trashes[i] = new Trash(textureAsteroid);
             trashes[i].prepare();
