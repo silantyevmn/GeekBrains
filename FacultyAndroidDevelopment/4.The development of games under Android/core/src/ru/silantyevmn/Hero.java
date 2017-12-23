@@ -98,7 +98,7 @@ public class Hero {
             }
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && velocity.y==0) { //если нажали пробел и персонаж не падает, тогда прыжок
-                velocity.y = 300;
+                velocity.y = 400;
         }
         hitArea.setPosition(tempPosition); //обновление окружности персонажа для столкновений с врагами
         tempPosition.add(-50, -50);
