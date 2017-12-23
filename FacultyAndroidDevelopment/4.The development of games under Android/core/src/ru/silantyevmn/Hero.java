@@ -18,6 +18,8 @@ public class Hero {
     private Vector2 tempPosition;
     private Map map;
     private boolean right;
+    private int maxHp;
+    private int hp;
 
     private float animationTime;
 
@@ -29,6 +31,8 @@ public class Hero {
         this.texture = new Texture("runner.png");
         this.regions = new TextureRegion(texture).split(100, 100)[0]; //разбиваем картинку на массив картинок для анимации
         this.right=true;
+        this.maxHp = 100;
+        this.hp = this.maxHp;
 
     }
 
@@ -97,7 +101,7 @@ public class Hero {
         return (int) animationTime % 6;
     }
 
-    private boolean checkCollision(Vector2 tempPosition) {
+    private boolean checkCollision(Vector2 tempPosition) { //стандартная проверка столкновений(окружность вокруг персонажа + radius)
         for (float i = 0; i < 6.28f; i += 0.1f) {
             if (!map.checkSpaceIsEmpty(tempPosition.x + RADIUS * (float) Math.cos(i), tempPosition.y + RADIUS * (float) Math.sin(i))) {
                 return true;
@@ -107,5 +111,7 @@ public class Hero {
     }
 
 
-
+    public void renderGUI(SpriteBatch batch, BitmapFont font48) {
+        font48.draw(batch, "HP: " + hp + " / " + maxHp, 20, 700);
+    }
 }
