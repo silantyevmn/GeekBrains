@@ -65,8 +65,8 @@ public class Lesson4 {
 
         //3
         Mfy mfy = new Mfy();
-        mfy.scan("java",20);
-        mfy.scan("java2",20);
+        mfy.scan("книга",20);
+        mfy.scan("книга2",20);
         mfy.print("рецепты",15);
         mfy.print("рецепты2",5);
     }
