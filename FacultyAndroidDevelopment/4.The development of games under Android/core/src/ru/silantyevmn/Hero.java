@@ -20,6 +20,11 @@ public class Hero {
     private boolean right;
     private int maxHp;
     private int hp;
+
+    public int getHp() {
+        return hp;
+    }
+
     private Circle hitArea;
 
     private float animationTime;
@@ -116,5 +121,9 @@ public class Hero {
 
     public void renderGUI(SpriteBatch batch, BitmapFont font48) {
         font48.draw(batch, "HP: " + hp + " / " + maxHp, 20, 700);
+    }
+
+    public void takeDamage(int dmg) {
+        hp-=dmg;
     }
 }
