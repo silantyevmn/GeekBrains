@@ -3,7 +3,7 @@ package ru.silantyevmn;
 import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
-import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.*;
 
 /**
  * ru.silantyevmn
@@ -20,9 +20,13 @@ public class Hero {
     private boolean right;
     private int maxHp;
     private int hp;
+    private Circle hitArea;
 
     private float animationTime;
 
+    public Circle getHitArea() {
+        return hitArea;
+    }
     public Hero(Map map, float x, float y) {
         this.map = map;
         this.position = new Vector2(x, y);
@@ -33,7 +37,7 @@ public class Hero {
         this.right=true;
         this.maxHp = 100;
         this.hp = this.maxHp;
-
+        this.hitArea=this.hitArea = new Circle(position, RADIUS);
     }
 
     public void render(SpriteBatch batch) {
@@ -91,10 +95,9 @@ public class Hero {
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && velocity.y==0) { //если нажали пробел и персонаж не падает, тогда прыжок
                 velocity.y = 300;
         }
-
+        hitArea.setPosition(tempPosition); //обновление окружности персонажа для столкновений с врагами
         tempPosition.add(-50, -50);
         position.set(tempPosition);
-        //hitArea.setPosition(position.x + 50, position.y + 50);
     }
 
     private int getCurrentFrame() {
