@@ -1,0 +1,185 @@
+/**
+ * ru.silantyevmn
+ * Created by ћихаил —илантьев on 21.12.2017.
+ */
+public class Hero {
+    private Texture texture;
+    private Vector2 position;
+    private Vector2 velocity;
+    private Map map;
+
+    public Hero(Map map, float x, float y) {
+        this.map = map;
+        this.position = new Vector2(x, y);
+        this.velocity = new Vector2(0, 0);
+        texture = new Texture("runner.png");
+    }
+
+    public void render(SpriteBatch batch) {
+        batch.draw(texture, position.x, position.y, 50, 50, 100, 100, 1f, 1f, 0, 0, 0, 100, 100, false, false);
+    }
+
+    public void update(float dt) {
+        //проверка на границы экрана
+        if (position.y + 100 > 720) position.y = 720 - 100;
+        if (position.x+20<0) position.x=-20;
+        if (position.x+90>1280) position.x=1190;
+
+        velocity.add(0, -400.0f * dt);
+        boolean jumpOff=false;
+        if (checkPosition(position.x + 20, position.x + 80, position.y, position.y)) {
+            // если персонаж на земле
+            velocity.y = 0;
+            velocity.x = 0;
+            jumpOff=true;
+        }
+        if (Gdx.input.justTouched()) {
+            // дл€ теста
+            position.x = Gdx.input.getX();
+            position.y = 720 - Gdx.input.getY();
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) { // если нажали D идем вправо
+            velocity.x = 200;
+            if (checkPosition(position.x + 80, position.x + 80, position.y + 10, position.y + 90)) {
+                velocity.x = 0;
+            }
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) { // если нажали A идем влево
+            velocity.x = -200;
+            if (checkPosition(position.x + 20, position.x + 20, position.y + 10, position.y + 90)) {
+                velocity.x = 0;
+            }
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            if(jumpOff) {
+                velocity.y = 300;
+            }
+        }
+        position.mulAdd(velocity, dt);
+
+    }
+
+    private boolean checkPosition(float x1, float x2, float y1, float y2) {
+        for (float i = x1; i < x2; i += 10) {
+            if (!map.checkSpaceIsEmpty(i, y1)) return true;
+        }
+        for (float i = y1; i < y2; i += 10) {
+            if (!map.checkSpaceIsEmpty(x1, i)) return true;
+        }
+        return false;
+    }
+
+
+}
+
+/**
+ * ru.silantyevmn
+ * Created by ћихаил —илантьев on 21.12.2017.
+ */
+public class Map {
+    public final char SYM_GROUNG='g';
+    private Texture textureGround;
+    private char[][] data;
+
+    public Map() {
+        textureGround=new Texture("ground.png");
+        data =new char[32][18];
+    }
+
+    public boolean checkSpaceIsEmpty(float x,float y){
+        int cellX=(int)(x/40);
+        int cellY=(int)(y/40);
+        return IsCellEmpty(cellX,cellY);
+    }
+
+    private boolean IsCellEmpty(int cellX, int cellY) {
+        if(data[cellX][cellY]==SYM_GROUNG){
+            return false;
+        }
+        return true;
+    }
+
+    public void generateMap() {
+        int height=3;// высота
+        int position=0;
+        fillMap(0,3,height);
+        position=4;
+        while (position<32){
+            int len= MathUtils.random(3,5); //длина земли 3-5 кубиков
+            height+=MathUtils.random(-2,2); //высота от -2 до 2
+            if(height<1) height=1;
+            if(height>5) height=5;
+            fillMap(position,position+len-1,height);
+            position+=len;
+        }
+    }
+
+    private  void fillMap(int x1,int x2,int height){
+        if(x2>31) x2=31;
+        for (int i = x1; i <=x2; i++) {
+            for (int j = 0; j < height; j++) {
+                data[i][j]=SYM_GROUNG;
+            }
+
+        }
+    }
+
+    public void render(SpriteBatch batch) {
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[i].length; j++) {
+                if(data[i][j]==SYM_GROUNG){
+                    batch.draw(textureGround,i*40,j*40);
+                }
+            }
+        }
+    }
+
+    public void dispoce() {
+        textureGround.dispose();
+    }
+
+    public void update(float dt) {
+
+    }
+}
+
+*******
+
+public class MyGdxGame extends ApplicationAdapter {
+    private SpriteBatch batch;
+    private Map map;
+    private Hero hero;
+
+    @Override
+    public void create() {
+        batch = new SpriteBatch();
+        map = new Map();
+        map.generateMap();
+        hero=new Hero(map,200,300);
+    }
+
+
+
+    @Override
+    public void render() {
+        float dt = Gdx.graphics.getDeltaTime();
+        update(dt);
+        Gdx.gl.glClearColor(0.9f, 0.9f, 1, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        batch.begin();
+        map.render(batch);
+        hero.render(batch);
+        batch.end();
+    }
+
+    public void update(float dt) {
+        map.update(dt);
+        hero.update(dt);
+    }
+
+    @Override
+    public void dispose() {
+        map.dispoce();
+        batch.dispose();
+    }
+}
