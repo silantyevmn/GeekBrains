@@ -2,6 +2,7 @@ package ru.silantyevmn;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
@@ -12,9 +13,9 @@ import com.badlogic.gdx.math.Vector2;
 public class Snow {
     private Vector2 position;
     private Vector2 velocity;
-    private Texture texture;
+    private TextureRegion texture;
 
-    public Snow(Texture texture) {
+    public Snow(TextureRegion texture) {
         this.position = new Vector2(0, 0);
         this.velocity = new Vector2(0, 0);
         this.texture = texture;
