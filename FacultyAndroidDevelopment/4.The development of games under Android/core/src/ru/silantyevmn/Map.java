@@ -11,46 +11,46 @@ import com.badlogic.gdx.math.Vector2;
  * Created by Михаил Силантьев on 21.12.2017.
  */
 public class Map {
-    public final char SYM_GROUNG='g';
+    public final char SYM_GROUNG = 'g';
     private Texture textureGround;
     private Texture textureSnow;
     private char[][] data;
     Snow[] snows;
 
     public Map() {
-        textureGround=new Texture("ground.png");
-        textureSnow=new Texture("star16.png");
-        data =new char[32][18];
-        snows=new Snow[100];
+        textureGround = new Texture("ground.png");
+        textureSnow = new Texture("star16.png");
+        data = new char[32][18];
+        snows = new Snow[100];
 
     }
 
-    public boolean checkSpaceIsEmpty(float x,float y){
+    public boolean checkSpaceIsEmpty(float x, float y) {
         if (x < 0 || x > Gdx.graphics.getWidth()) return false;
-        int cellX=(int)(x/40);
-        int cellY=(int)(y/40);
-        return IsCellEmpty(cellX,cellY);
+        int cellX = (int) (x / 40);
+        int cellY = (int) (y / 40);
+        return IsCellEmpty(cellX, cellY);
     }
 
     private boolean IsCellEmpty(int cellX, int cellY) {
-        if(data[cellX][cellY]==SYM_GROUNG){
+        if (data[cellX][cellY] == SYM_GROUNG) {
             return false;
         }
         return true;
     }
 
     public void generateMap() {
-        int height=3;// высота
-        int position=0;
-        fillMap(0,3,height);
-        position=4;
-        while (position<32){
-            int len= MathUtils.random(2,4); //длина земли 3-5 кубиков
-            height+=MathUtils.random(-2,2); //высота от -2 до 2
-            if(height<1) height=1;
-            if(height>4) height=4;
-            fillMap(position,position+len-1,height);
-            position+=len;
+        int height = 3;// высота
+        int position = 0;
+        fillMap(0, 3, height);
+        position = 4;
+        while (position < 32) {
+            int len = MathUtils.random(2, 4); //длина земли 3-5 кубиков
+            height += MathUtils.random(-2, 2); //высота от -2 до 2
+            if (height < 1) height = 1;
+            if (height > 4) height = 4;
+            fillMap(position, position + len - 1, height);
+            position += len;
         }
 //        //заполняем массив препятствиями сверху
 //        fillBridge(0,3,7);
@@ -65,25 +65,25 @@ public class Map {
 //            position+=len+4;
 //        }
         for (int i = 0; i < snows.length; i++) {
-            snows[i]=new Snow(textureSnow);
+            snows[i] = new Snow(textureSnow);
             snows[i].recreate();
         }
 
 
-
-    }
-    private void fillBridge(int x1,int x2,int height){
-        if(x2>31) x2=31;
-        for (int i = x1; i <=x2; i++) {
-                data[i][height]=SYM_GROUNG;
-            }
     }
 
-    private  void fillMap(int x1,int x2,int height){
-        if(x2>31) x2=31;
-        for (int i = x1; i <=x2; i++) {
+    private void fillBridge(int x1, int x2, int height) {
+        if (x2 > 31) x2 = 31;
+        for (int i = x1; i <= x2; i++) {
+            data[i][height] = SYM_GROUNG;
+        }
+    }
+
+    private void fillMap(int x1, int x2, int height) {
+        if (x2 > 31) x2 = 31;
+        for (int i = x1; i <= x2; i++) {
             for (int j = 0; j < height; j++) {
-                data[i][j]=SYM_GROUNG;
+                data[i][j] = SYM_GROUNG;
             }
 
         }
@@ -92,13 +92,13 @@ public class Map {
     public void render(SpriteBatch batch) {
         for (int i = 0; i < data.length; i++) {
             for (int j = 0; j < data[i].length; j++) {
-                if(data[i][j]==SYM_GROUNG){
-                    batch.draw(textureGround,i*40,j*40);
+                if (data[i][j] == SYM_GROUNG) {
+                    batch.draw(textureGround, i * 40, j * 40);
                 }
             }
         }
         for (int i = 0; i < snows.length; i++) {
-           snows[i].render(batch);
+            snows[i].render(batch);
         }
     }
 
