@@ -11,7 +11,7 @@ import com.badlogic.gdx.math.Vector2;
  * Created by Михаил Силантьев on 23.12.2017.
  */
 public class Trash {
-    private final int RADIUS=28;
+    private final int RADIUS = 28;
     private Texture texture;
     private Vector2 position;
     private Vector2 velocity;
@@ -23,11 +23,11 @@ public class Trash {
         return hitArea;
     }
 
-    public Trash(Texture texture){
-        this.texture=texture;
-        this.position=new Vector2(0,0);
-        this.velocity=new Vector2(0,0);
-        this.hitArea=new Circle(position,RADIUS);
+    public Trash(Texture texture) {
+        this.texture = texture;
+        this.position = new Vector2(0, 0);
+        this.velocity = new Vector2(0, 0);
+        this.hitArea = new Circle(position, RADIUS);
     }
 
     public void prepare() {
@@ -39,11 +39,11 @@ public class Trash {
         angle = MathUtils.random(0, 360);
     }
 
-    public void render(SpriteBatch batch){
+    public void render(SpriteBatch batch) {
         batch.draw(texture, position.x - 32, position.y - 32, 32, 32, 64, 64, scale, scale, angle, 0, 0, 64, 64, false, false);
     }
 
-    public void update(float dt){
+    public void update(float dt) {
         position.mulAdd(velocity, dt);
         if (position.y < -100) {
             prepare();
