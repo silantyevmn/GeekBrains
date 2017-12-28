@@ -20,6 +20,7 @@ public class Hero {
     private boolean right;
     private int maxHp;
     private int hp;
+    private int money;
 
     public int getHp() {
         return hp;
@@ -43,6 +44,7 @@ public class Hero {
         this.maxHp = 100;
         this.hp = this.maxHp;
         this.hitArea=this.hitArea = new Circle(position, RADIUS);
+        this.money=0;
     }
 
     public void render(SpriteBatch batch) {
