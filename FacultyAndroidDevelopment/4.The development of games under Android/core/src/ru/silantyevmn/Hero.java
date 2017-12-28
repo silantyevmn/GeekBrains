@@ -46,6 +46,9 @@ public class Hero {
         this.hitArea=this.hitArea = new Circle(position, RADIUS);
         this.money=0;
     }
+    public void addMoney(int amount){
+        money+=amount;
+    }
 
     public void render(SpriteBatch batch) {
         //batch.draw(texture, position.x, position.y, 50, 50, 100, 100, 1f, 1f, 0, 0, 0, 100, 100, false, false);
