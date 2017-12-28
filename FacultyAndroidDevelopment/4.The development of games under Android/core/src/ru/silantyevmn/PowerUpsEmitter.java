@@ -16,10 +16,9 @@ public class PowerUpsEmitter {
         return powerUps;
     }
 
-    public PowerUpsEmitter(){
+    public PowerUpsEmitter(TextureRegion original){
         this.powerUps=new PowerUp[10];
-        Texture texture=new Texture("money.png");
-        textureRegion=new TextureRegion(texture).split(32,32)[0];
+        textureRegion=new TextureRegion(original).split(32,32)[0];
         for (int i = 0; i < powerUps.length; i++) {
             powerUps[i]=new PowerUp();
         }
