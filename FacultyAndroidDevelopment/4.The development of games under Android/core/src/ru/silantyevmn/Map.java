@@ -3,6 +3,7 @@ package ru.silantyevmn;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
@@ -12,14 +13,14 @@ import com.badlogic.gdx.math.Vector2;
  */
 public class Map {
     public final char SYM_GROUNG = 'g';
-    private Texture textureGround;
-    private Texture textureSnow;
+    private TextureRegion textureGround;
+    private TextureRegion textureSnow;
     private char[][] data;
     Snow[] snows;
 
-    public Map() {
-        textureGround = new Texture("ground.png");
-        textureSnow = new Texture("star16.png");
+    public Map(TextureRegion imageGroung,TextureRegion imageSnow) {
+        textureGround = imageGroung;
+        textureSnow = imageSnow;
         data = new char[32][18];
         snows = new Snow[100];
 
@@ -109,6 +110,6 @@ public class Map {
     }
 
     public void dispoce() {
-        textureGround.dispose();
+
     }
 }
