@@ -103,7 +103,7 @@ public class Hero {
             }
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && velocity.y==0) { //если нажали пробел и персонаж не падает, тогда прыжок
-                velocity.y = 400;
+                velocity.y = 330;
         }
         hitArea.setPosition(tempPosition); //обновление окружности персонажа для столкновений с врагами
         tempPosition.add(-50, -50);
@@ -125,7 +125,7 @@ public class Hero {
 
 
     public void renderGUI(SpriteBatch batch, BitmapFont font48) {
-        font48.draw(batch, "HP: " + hp + " / " + maxHp, 20, 700);
+        font48.draw(batch, "HP: " + hp + " / " + maxHp+"\nMoney:"+money, 20, 700);
     }
 
     public void takeDamage(int dmg) {
