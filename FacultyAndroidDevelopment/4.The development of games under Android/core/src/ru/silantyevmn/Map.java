@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 
 /**
  * ru.silantyevmn
@@ -12,11 +13,16 @@ import com.badlogic.gdx.math.MathUtils;
 public class Map {
     public final char SYM_GROUNG='g';
     private Texture textureGround;
+    private Texture textureSnow;
     private char[][] data;
+    Snow[] snows;
 
     public Map() {
         textureGround=new Texture("ground.png");
+        textureSnow=new Texture("star16.png");
         data =new char[32][18];
+        snows=new Snow[100];
+
     }
 
     public boolean checkSpaceIsEmpty(float x,float y){
@@ -46,7 +52,7 @@ public class Map {
             fillMap(position,position+len-1,height);
             position+=len;
         }
-        //рисуем мостики
+        //заполняем массив препятствиями сверху
         fillBridge(0,3,7);
         position=8;
         while (position<32){
@@ -58,6 +64,11 @@ public class Map {
             fillBridge(position,position+len-1,height+3);
             position+=len+4;
         }
+        for (int i = 0; i < snows.length; i++) {
+            snows[i]=new Snow(textureSnow);
+            snows[i].recreate();
+        }
+
 
 
     }
@@ -86,13 +97,18 @@ public class Map {
                 }
             }
         }
+        for (int i = 0; i < snows.length; i++) {
+           snows[i].render(batch);
+        }
+    }
+
+    public void update(float dt) {
+        for (int i = 0; i < snows.length; i++) {
+            snows[i].update(dt);
+        }
     }
 
     public void dispoce() {
         textureGround.dispose();
-    }
-
-    public void update(float dt) {
-
     }
 }
