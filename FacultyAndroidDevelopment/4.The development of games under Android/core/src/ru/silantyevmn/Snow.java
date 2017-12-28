@@ -17,7 +17,7 @@ public class Snow {
     public Snow(Texture texture) {
         this.position = new Vector2(0, 0);
         this.velocity = new Vector2(0, 0);
-        this.texture=texture;
+        this.texture = texture;
     }
 
     public void recreate() {
@@ -25,9 +25,10 @@ public class Snow {
         this.velocity.set(MathUtils.random(-50, 50), MathUtils.random(-200, -50));
     }
 
-    public void render(SpriteBatch batch){
-        batch.draw(texture,position.x-8,position.y-8);
+    public void render(SpriteBatch batch) {
+        batch.draw(texture, position.x - 8, position.y - 8);
     }
+
     public void update(float dt) {
         this.position.mulAdd(velocity, dt);
         if (position.x > 1280) position.x = 0;
