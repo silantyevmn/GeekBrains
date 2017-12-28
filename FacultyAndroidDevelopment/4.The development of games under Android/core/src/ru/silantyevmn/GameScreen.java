@@ -1,12 +1,8 @@
 package ru.silantyevmn;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.*;
+import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.MathUtils;
 
@@ -14,33 +10,36 @@ import com.badlogic.gdx.math.MathUtils;
  * ru.silantyevmn
  * Created by Михаил Силантьев on 29.12.2017.
  */
+
 public class GameScreen implements Screen {
+    private TextureAtlas atlas;
     private SpriteBatch batch;
     private Map map;
     private Hero hero;
     private BitmapFont font24;
-    private BitmapFont font48;
+    private BitmapFont font96;
     private Trash[] trashes;
     private boolean gameOver;
-    private Texture textureAsteroid;
     private PowerUpsEmitter powerUpsEmitter;
     private int counter;
+    private TextureRegion textureAsteroid;
 
     public GameScreen(SpriteBatch batch){
         this.batch=batch;
     }
     @Override
     public void show() {
-        map = new Map();
+        atlas=new TextureAtlas(Gdx.files.internal("mainpack.pack"));
+        map = new Map(atlas.findRegion("ground"),atlas.findRegion("star16"));
         map.generateMap();
-        hero = new Hero(map, 200, 300);
-        textureAsteroid = new Texture("asteroid64.png");
+        hero = new Hero(map,atlas.findRegion("runner"), 200, 300);
+        textureAsteroid = atlas.findRegion("asteroid64");
         trashes = new Trash[25];
         for (int i = 0; i < trashes.length; i++) {
             trashes[i] = new Trash(textureAsteroid);
             trashes[i].prepare();
         }
-        powerUpsEmitter = new PowerUpsEmitter();
+        powerUpsEmitter = new PowerUpsEmitter(atlas.findRegion("money"));
         counter = 0;
         generateFonts();
         gameOver = false;
@@ -56,8 +55,8 @@ public class GameScreen implements Screen {
         parameters.shadowOffsetY = 3;
         parameters.shadowColor = Color.BLACK;
         font24 = generator.generateFont(parameters);
-        parameters.size = 48;
-        font48 = generator.generateFont(parameters);
+        parameters.size = 96;
+        font96 = generator.generateFont(parameters);
         generator.dispose();
     }
 
@@ -75,15 +74,15 @@ public class GameScreen implements Screen {
         powerUpsEmitter.render(batch);
         hero.renderGUI(batch, font24);
         if (gameOver) {
-            font48.draw(batch, "Game Over", 330, 400);
+            font96.draw(batch, "Game Over", 330, 400);
         }
         batch.end();
     }
     private void restart() {
         gameOver = false;
-        map = new Map();
+        map = new Map(atlas.findRegion("ground"),atlas.findRegion("star16"));
         map.generateMap();
-        hero = new Hero(map, 200, 300);
+        hero = new Hero(map,atlas.findRegion("runner"),200, 300);
         trashes = new Trash[50];
         for (int i = 0; i < trashes.length; i++) {
             trashes[i] = new Trash(textureAsteroid);
@@ -140,6 +139,6 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
-
+        atlas.dispose();
     }
 }
