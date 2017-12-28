@@ -1,7 +1,7 @@
 
-texturePack1.png
+tools1.png
 format: RGBA8888
-filter: Linear,Linear
+filter: Nearest,Nearest
 repeat: none
 runner
   rotate: false
@@ -17,13 +17,6 @@ asteroid64
   orig: 64, 64
   offset: 0, 0
   index: -1
-ground
-  rotate: false
-  xy: 604, 68
-  size: 40, 40
-  orig: 40, 40
-  offset: 0, 0
-  index: -1
 money
   rotate: false
   xy: 670, 2
@@ -31,9 +24,16 @@ money
   orig: 96, 32
   offset: 0, 0
   index: -1
+ground
+  rotate: false
+  xy: 670, 36
+  size: 40, 40
+  orig: 40, 40
+  offset: 0, 0
+  index: -1
 star16
   rotate: false
-  xy: 2, 104
+  xy: 604, 68
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
