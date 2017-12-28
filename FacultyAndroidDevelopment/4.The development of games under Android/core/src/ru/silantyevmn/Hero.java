@@ -10,7 +10,7 @@ import com.badlogic.gdx.math.*;
  * Created by Михаил Силантьев on 21.12.2017.
  */
 public class Hero {
-    private final int RADIUS=35;
+    private final int RADIUS = 35;
     private Texture texture;
     private TextureRegion[] regions;
     private Vector2 position;
@@ -33,6 +33,7 @@ public class Hero {
     public Circle getHitArea() {
         return hitArea;
     }
+
     public Hero(Map map, float x, float y) {
         this.map = map;
         this.position = new Vector2(x, y);
@@ -40,19 +41,20 @@ public class Hero {
         this.tempPosition = new Vector2(0, 0);
         this.texture = new Texture("runner.png");
         this.regions = new TextureRegion(texture).split(100, 100)[0]; //разбиваем картинку на массив картинок для анимации
-        this.right=true;
+        this.right = true;
         this.maxHp = 100;
         this.hp = this.maxHp;
-        this.hitArea=this.hitArea = new Circle(position, RADIUS);
-        this.money=0;
+        this.hitArea = new Circle(position, RADIUS);
+        this.money = 0;
     }
-    public void addMoney(int amount){
-        money+=amount;
+
+    public void addMoney(int amount) {
+        money += amount;
     }
 
     public void render(SpriteBatch batch) {
         //batch.draw(texture, position.x, position.y, 50, 50, 100, 100, 1f, 1f, 0, 0, 0, 100, 100, false, false);
-        int frameIndex=getCurrentFrame();
+        int frameIndex = getCurrentFrame();
         if (!right && !regions[frameIndex].isFlipX()) {
             regions[frameIndex].flip(true, false);
         }
@@ -71,11 +73,11 @@ public class Hero {
         tempPosition.add(50, 50);
         if (Gdx.input.isKeyPressed(Input.Keys.D)) { // если нажали D идем вправо
             velocity.x = 200;
-            right=true;
+            right = true;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.A)) { // если нажали A идем влево
             velocity.x = -200;
-            right=false;
+            right = false;
         }
         // проверка столкновений персонажа по пикселям
         float len = velocity.len() * dt;
@@ -102,8 +104,8 @@ public class Hero {
                 animationTime += dt * 50.0f;
             }
         }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && velocity.y==0) { //если нажали пробел и персонаж не падает, тогда прыжок
-                velocity.y = 330;
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && velocity.y == 0) { //если нажали пробел и персонаж не падает, тогда прыжок
+            velocity.y = 330;
         }
         hitArea.setPosition(tempPosition); //обновление окружности персонажа для столкновений с врагами
         tempPosition.add(-50, -50);
@@ -125,10 +127,10 @@ public class Hero {
 
 
     public void renderGUI(SpriteBatch batch, BitmapFont font48) {
-        font48.draw(batch, "HP: " + hp + " / " + maxHp+"\nMoney:"+money, 20, 700);
+        font48.draw(batch, "HP: " + hp + " / " + maxHp + "\nMoney:" + money, 20, 700);
     }
 
     public void takeDamage(int dmg) {
-        hp-=dmg;
+        hp -= dmg;
     }
 }
