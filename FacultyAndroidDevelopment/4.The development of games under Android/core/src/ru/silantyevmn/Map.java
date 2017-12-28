@@ -52,18 +52,18 @@ public class Map {
             fillMap(position,position+len-1,height);
             position+=len;
         }
-        //заполняем массив препятствиями сверху
-        fillBridge(0,3,7);
-        position=8;
-        while (position<32){
-            int len= MathUtils.random(1,4); //длина кубиков
-            height=1;
-            while (!IsCellEmpty(position,height)){
-                height++;
-            }
-            fillBridge(position,position+len-1,height+3);
-            position+=len+4;
-        }
+//        //заполняем массив препятствиями сверху
+//        fillBridge(0,3,7);
+//        position=8;
+//        while (position<32){
+//            int len= MathUtils.random(1,4); //длина кубиков
+//            height=1;
+//            while (!IsCellEmpty(position,height)){
+//                height++;
+//            }
+//            fillBridge(position,position+len-1,height+3);
+//            position+=len+4;
+//        }
         for (int i = 0; i < snows.length; i++) {
             snows[i]=new Snow(textureSnow);
             snows[i].recreate();
