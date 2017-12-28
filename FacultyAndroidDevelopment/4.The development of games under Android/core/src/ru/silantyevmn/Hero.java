@@ -1,7 +1,6 @@
 package ru.silantyevmn;
 
 import com.badlogic.gdx.*;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.math.*;
 
@@ -11,7 +10,6 @@ import com.badlogic.gdx.math.*;
  */
 public class Hero {
     private final int RADIUS = 35;
-    private Texture texture;
     private TextureRegion[] regions;
     private Vector2 position;
     private Vector2 velocity;
@@ -34,13 +32,12 @@ public class Hero {
         return hitArea;
     }
 
-    public Hero(Map map, float x, float y) {
+    public Hero(Map map,TextureRegion original,float x, float y) {
         this.map = map;
         this.position = new Vector2(x, y);
         this.velocity = new Vector2(0, 0);
         this.tempPosition = new Vector2(0, 0);
-        this.texture = new Texture("runner.png");
-        this.regions = new TextureRegion(texture).split(100, 100)[0]; //разбиваем картинку на массив картинок для анимации
+        this.regions = new TextureRegion(original).split(100, 100)[0]; //разбиваем картинку на массив картинок для анимации
         this.right = true;
         this.maxHp = 100;
         this.hp = this.maxHp;
