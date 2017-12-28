@@ -35,8 +35,8 @@ public class MyGdxGame extends ApplicationAdapter {
             trashes[i].prepare();
         }
         generateFonts();
-        powerUpsEmitter=new PowerUpsEmitter();
-        counter=0;
+        powerUpsEmitter = new PowerUpsEmitter();
+        counter = 0;
     }
 
     @Override
@@ -63,8 +63,8 @@ public class MyGdxGame extends ApplicationAdapter {
         if (hero.getHp() == 0) gameOver = true;
         if (!gameOver) {
             counter++;
-            if(counter%50==0){
-                powerUpsEmitter.createPowerUp(MathUtils.random(0,1280),MathUtils.random(200,250),1.0f);
+            if (counter % 50 == 0) {
+                powerUpsEmitter.createPowerUp(MathUtils.random(0, 1280), MathUtils.random(200, 250), 1.0f);
             }
             map.update(dt);
             hero.update(dt);
@@ -77,17 +77,17 @@ public class MyGdxGame extends ApplicationAdapter {
                 }
             }
             for (int i = 0; i < powerUpsEmitter.getPowerUps().length; i++) {
-                if(hero.getHitArea().contains(powerUpsEmitter.getPowerUps()[i].getPosition()) && powerUpsEmitter.getPowerUps()[i].isActivity()){
+                if (hero.getHitArea().contains(powerUpsEmitter.getPowerUps()[i].getPosition()) && powerUpsEmitter.getPowerUps()[i].isActivity()) {
                     powerUpsEmitter.getPowerUps()[i].use(hero);
                     powerUpsEmitter.getPowerUps()[i].deactivate();
                 }
 
             }
-        } else if(Gdx.input.justTouched()) restart();
+        } else if (Gdx.input.justTouched()) restart();
     }
 
     private void restart() {
-        gameOver=false;
+        gameOver = false;
         map = new Map();
         map.generateMap();
         hero = new Hero(map, 200, 300);
