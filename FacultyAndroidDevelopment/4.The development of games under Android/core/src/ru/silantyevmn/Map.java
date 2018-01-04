@@ -18,12 +18,13 @@ public class Map {
     private char[][] data;
     private Snow[] snows;
     private final boolean SNOW_ENABLE=false;
+    private final int SHOW_COUNT=100;
 
     public Map(TextureRegion imageGroung,TextureRegion imageSnow) {
         textureGround = imageGroung;
         textureSnow = imageSnow;
         data = new char[32][18];
-        snows = new Snow[100];
+        snows = new Snow[SHOW_COUNT];
         if(!SNOW_ENABLE){
             snows=new Snow[0];
         }
