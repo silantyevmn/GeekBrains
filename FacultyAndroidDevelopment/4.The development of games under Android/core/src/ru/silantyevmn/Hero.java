@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.*;
  * Created by Михаил Силантьев on 21.12.2017.
  */
 public class Hero {
+    private GameScreen gameScreen;
     private final int RADIUS = 35;
     private TextureRegion[] regions;
     private Vector2 position;
@@ -19,6 +20,8 @@ public class Hero {
     private int maxHp;
     private int hp;
     private int money;
+    private float firePressTimer;
+    private float timeBeetwinFire;
 
     public int getHp() {
         return hp;
@@ -32,7 +35,8 @@ public class Hero {
         return hitArea;
     }
 
-    public Hero(Map map,TextureRegion original,float x, float y) {
+    public Hero(GameScreen gameScreen,Map map,TextureRegion original,float x, float y) {
+        this.gameScreen=gameScreen;
         this.map = map;
         this.position = new Vector2(x, y);
         this.velocity = new Vector2(0, 0);
@@ -43,6 +47,7 @@ public class Hero {
         this.hp = this.maxHp;
         this.hitArea = new Circle(position, RADIUS);
         this.money = 0;
+        this.timeBeetwinFire=0.5f;
     }
 
     public void addMoney(int amount) {
@@ -103,6 +108,15 @@ public class Hero {
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && velocity.y == 0) { //если нажали пробел и персонаж не падает, тогда прыжок
             velocity.y = 330;
+        }
+        if(Gdx.input.isKeyPressed(Input.Keys.L)){
+            firePressTimer+=dt;
+            if(firePressTimer>timeBeetwinFire){
+                firePressTimer-=timeBeetwinFire;
+                float bulletVelX=440.0f; //скорость пули
+                if(!right) bulletVelX*=-1;
+                gameScreen.getBulletEmitter().setup(true,position.x+75,position.y+50,bulletVelX,0);
+            }
         }
         hitArea.setPosition(tempPosition); //обновление окружности персонажа для столкновений с врагами
         tempPosition.add(-50, -50);
