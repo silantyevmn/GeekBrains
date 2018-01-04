@@ -4,6 +4,7 @@ import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 
 /**
@@ -16,6 +17,7 @@ public class GameScreen implements Screen {
     private SpriteBatch batch;
     private Map map;
     private Hero hero;
+    private Monster monster;
     private BitmapFont font24;
     private BitmapFont font96;
     private Trash[] trashes;
@@ -24,20 +26,34 @@ public class GameScreen implements Screen {
     private BulletEmitter bulletEmitter;
     private int counter;
     private TextureRegion textureAsteroid;
+    private ShapeRenderer shapeRenderer;
+    private static final boolean DEBUG_MODE = true;
+    private float time;
+
+
+    public Hero getHero() {
+        return hero;
+    }
+
+    public Monster getMonster() {
+        return monster;
+    }
 
     public BulletEmitter getBulletEmitter() {
         return bulletEmitter;
     }
 
-    public GameScreen(SpriteBatch batch){
-        this.batch=batch;
+    public GameScreen(SpriteBatch batch) {
+        this.batch = batch;
     }
+
     @Override
     public void show() {
-        atlas=new TextureAtlas(Gdx.files.internal("mainpack.pack"));
-        map = new Map(atlas.findRegion("ground"),atlas.findRegion("star16"));
+        atlas = new TextureAtlas(Gdx.files.internal("mainpack.pack"));
+        map = new Map(atlas.findRegion("ground"), atlas.findRegion("star16"));
         map.generateMap();
-        hero = new Hero(this,map,atlas.findRegion("runner"), 200, 300);
+        hero = new Hero(this, map, atlas.findRegion("runner"), 200, 300);
+        monster = new Monster(this, map, atlas.findRegion("runner"), 700, 300);
         textureAsteroid = atlas.findRegion("asteroid64");
         trashes = new Trash[25];
         for (int i = 0; i < trashes.length; i++) {
@@ -45,11 +61,27 @@ public class GameScreen implements Screen {
             trashes[i].prepare();
         }
         powerUpsEmitter = new PowerUpsEmitter(atlas.findRegion("money"));
-        bulletEmitter=new BulletEmitter(atlas.findRegion("star16"),50); // создаем 50 пуль
+        bulletEmitter = new BulletEmitter(atlas.findRegion("star16"), 100); // создаем 100 пуль
+        if (DEBUG_MODE) {
+            shapeRenderer = new ShapeRenderer();
+            shapeRenderer.setAutoShapeType(true);
+        }
         counter = 0;
         generateFonts();
         gameOver = false;
     }
+
+    private void restart() {
+        gameOver = false;
+        map.generateMap();
+        hero = new Hero(this, map, atlas.findRegion("runner"), 200, 300);
+        monster = new Monster(this, map, atlas.findRegion("runner"), 700, 300);
+        for (int i = 0; i < trashes.length; i++) {
+            trashes[i].prepare();
+        }
+        counter = 0;
+    }
+
     public void generateFonts() {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("zorque.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameters = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -74,6 +106,7 @@ public class GameScreen implements Screen {
         batch.begin();
         map.render(batch);
         hero.render(batch);
+        monster.render(batch);
         for (int i = 0; i < trashes.length; i++) {
             trashes[i].render(batch);
         }
@@ -84,21 +117,19 @@ public class GameScreen implements Screen {
             font96.draw(batch, "Game Over", 330, 400);
         }
         batch.end();
-    }
-    private void restart() {
-        gameOver = false;
-        map = new Map(atlas.findRegion("ground"),atlas.findRegion("star16"));
-        map.generateMap();
-        hero = new Hero(this,map,atlas.findRegion("runner"),200, 300);
-        trashes = new Trash[50];
-        for (int i = 0; i < trashes.length; i++) {
-            trashes[i] = new Trash(textureAsteroid);
-            trashes[i].prepare();
+        if (DEBUG_MODE) {
+            shapeRenderer.begin();
+            shapeRenderer.circle(hero.getHitArea().x, hero.getHitArea().y, hero.getHitArea().radius);
+            shapeRenderer.end();
         }
     }
 
     public void update(float dt) {
-        if (hero.getHp() == 0) gameOver = true;
+        if (hero.getHp() <= 0) {
+            hero.hp=0;
+            gameOver = true;
+        }
+        if (monster.getHp() <= 0) monster.deactivate();
         if (!gameOver) {
             counter++;
             if (counter % 50 == 0) {
@@ -106,6 +137,7 @@ public class GameScreen implements Screen {
             }
             map.update(dt);
             hero.update(dt);
+            monster.update(dt);
             bulletEmitter.update(dt);
             powerUpsEmitter.update(dt);
             for (int i = 0; i < trashes.length; i++) {
@@ -114,6 +146,29 @@ public class GameScreen implements Screen {
                     trashes[i].prepare();
                     hero.takeDamage(5);
                 }
+                //проверка на попадание камней в монстра
+                if (monster.getHitArea().overlaps(trashes[i].getHitArea())) {
+                    trashes[i].prepare();
+                    monster.takeDamage(10);
+                }
+                //проверка на попадание пуль
+                for (int j = 0; j < bulletEmitter.getActiveList().size(); j++) {
+                    Bullet b=bulletEmitter.getActiveList().get(j);
+                    if(monster.getHitArea().contains(b.getPosition()) && b.isPlayersBullet() && monster.isActivity()){
+                        monster.takeDamage(50);
+                        b.deactivate();
+                    }
+                    if(hero.getHitArea().contains(b.getPosition()) && !b.isPlayersBullet() ){
+                        hero.takeDamage(5);
+                        b.deactivate();
+                    }
+                    if(trashes[i].getHitArea().contains(b.getPosition())){
+                        trashes[i].prepare();
+                        b.deactivate();
+                    }
+                    bulletEmitter.checkPool();
+                }
+
             }
             for (int i = 0; i < powerUpsEmitter.getPowerUps().length; i++) {
                 if (hero.getHitArea().contains(powerUpsEmitter.getPowerUps()[i].getPosition()) && powerUpsEmitter.getPowerUps()[i].isActivity()) {
@@ -122,7 +177,9 @@ public class GameScreen implements Screen {
                 }
 
             }
-            bulletEmitter.checkPool();
+
+            //bulletEmitter.checkPool();
+
 
         } else if (Gdx.input.justTouched()) restart();
 
@@ -150,6 +207,8 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
-        atlas.dispose();
+        if (DEBUG_MODE) {
+            shapeRenderer.dispose();
+        }
     }
 }
