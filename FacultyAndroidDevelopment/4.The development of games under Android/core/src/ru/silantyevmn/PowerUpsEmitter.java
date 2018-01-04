@@ -26,7 +26,7 @@ public class PowerUpsEmitter {
     public void render(SpriteBatch batch){
         for (int i = 0; i < powerUps.length; i++) {
             if(powerUps[i].isActivity()){
-                batch.draw(textureRegion[powerUps[i].getType().getImagePosition()],powerUps[i].getPosition().x,powerUps[i].getPosition().y);
+                batch.draw(textureRegion[powerUps[i].getType().getImagePosition()],powerUps[i].getPosition().x-16,powerUps[i].getPosition().y-16);
             }
 
         }
