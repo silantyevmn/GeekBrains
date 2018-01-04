@@ -21,8 +21,13 @@ public class GameScreen implements Screen {
     private Trash[] trashes;
     private boolean gameOver;
     private PowerUpsEmitter powerUpsEmitter;
+    private BulletEmitter bulletEmitter;
     private int counter;
     private TextureRegion textureAsteroid;
+
+    public BulletEmitter getBulletEmitter() {
+        return bulletEmitter;
+    }
 
     public GameScreen(SpriteBatch batch){
         this.batch=batch;
@@ -32,7 +37,7 @@ public class GameScreen implements Screen {
         atlas=new TextureAtlas(Gdx.files.internal("mainpack.pack"));
         map = new Map(atlas.findRegion("ground"),atlas.findRegion("star16"));
         map.generateMap();
-        hero = new Hero(map,atlas.findRegion("runner"), 200, 300);
+        hero = new Hero(this,map,atlas.findRegion("runner"), 200, 300);
         textureAsteroid = atlas.findRegion("asteroid64");
         trashes = new Trash[25];
         for (int i = 0; i < trashes.length; i++) {
@@ -40,6 +45,7 @@ public class GameScreen implements Screen {
             trashes[i].prepare();
         }
         powerUpsEmitter = new PowerUpsEmitter(atlas.findRegion("money"));
+        bulletEmitter=new BulletEmitter(atlas.findRegion("star16"),50); // создаем 50 пуль
         counter = 0;
         generateFonts();
         gameOver = false;
@@ -72,6 +78,7 @@ public class GameScreen implements Screen {
             trashes[i].render(batch);
         }
         powerUpsEmitter.render(batch);
+        bulletEmitter.render(batch);
         hero.renderGUI(batch, font24);
         if (gameOver) {
             font96.draw(batch, "Game Over", 330, 400);
@@ -82,7 +89,7 @@ public class GameScreen implements Screen {
         gameOver = false;
         map = new Map(atlas.findRegion("ground"),atlas.findRegion("star16"));
         map.generateMap();
-        hero = new Hero(map,atlas.findRegion("runner"),200, 300);
+        hero = new Hero(this,map,atlas.findRegion("runner"),200, 300);
         trashes = new Trash[50];
         for (int i = 0; i < trashes.length; i++) {
             trashes[i] = new Trash(textureAsteroid);
@@ -99,6 +106,7 @@ public class GameScreen implements Screen {
             }
             map.update(dt);
             hero.update(dt);
+            bulletEmitter.update(dt);
             powerUpsEmitter.update(dt);
             for (int i = 0; i < trashes.length; i++) {
                 trashes[i].update(dt);
@@ -114,7 +122,10 @@ public class GameScreen implements Screen {
                 }
 
             }
+            bulletEmitter.checkPool();
+
         } else if (Gdx.input.justTouched()) restart();
+
     }
 
     @Override
