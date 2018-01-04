@@ -1,5 +1,8 @@
 package ru.silantyevmn;
 
+import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
 import java.awt.*;
@@ -19,7 +22,6 @@ public class Bullet implements Poolable {
     }
 
     public boolean isPlayersBullet() {
-
         return isPlayersBullet;
     }
     public boolean isActive(){ return active;}
@@ -36,6 +38,7 @@ public class Bullet implements Poolable {
         velocity.set(vx,vy);
         active=true;
     }
+
     public void update(float dt){
         position.mulAdd(velocity,dt);
         if(position.x>1280 || position.x<0 || position.y<0 || position.y>720){
