@@ -16,13 +16,17 @@ public class Map {
     private TextureRegion textureGround;
     private TextureRegion textureSnow;
     private char[][] data;
-    Snow[] snows;
+    private Snow[] snows;
+    private final boolean SNOW_ENABLE=false;
 
     public Map(TextureRegion imageGroung,TextureRegion imageSnow) {
         textureGround = imageGroung;
         textureSnow = imageSnow;
         data = new char[32][18];
         snows = new Snow[100];
+        if(!SNOW_ENABLE){
+            snows=new Snow[0];
+        }
 
     }
 
