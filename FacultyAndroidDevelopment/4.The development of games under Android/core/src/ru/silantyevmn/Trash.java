@@ -12,7 +12,7 @@ import com.badlogic.gdx.math.Vector2;
  * Created by Михаил Силантьев on 23.12.2017.
  */
 public class Trash {
-    private final int RADIUS = 28;
+    private int radius;
     private TextureRegion texture;
     private Vector2 position;
     private Vector2 velocity;
@@ -20,6 +20,8 @@ public class Trash {
     private float scale;
     private float angle;
     private float speed;
+    private float width;
+    private float height;
 
 
     public Circle getHitArea() {
@@ -30,7 +32,10 @@ public class Trash {
         this.texture = texture;
         this.position = new Vector2(0, 0);
         this.velocity = new Vector2(0, 0);
-        this.hitArea = new Circle(position, RADIUS);
+        this.width=64;
+        this.height=64;
+        this.radius=(int)width/2;
+        this.hitArea = new Circle(position, radius);
         this.speed=-300;
     }
 
@@ -38,14 +43,15 @@ public class Trash {
         position.set(MathUtils.random(0, 1280), MathUtils.random(1500, 5000));
         hitArea.setPosition(position);
         scale = MathUtils.random(0.6f, 0.8f);
+        //radius*=scale;
         speed=scale/0.6f*-300;
         velocity.set(0, speed);
-        hitArea.radius = RADIUS * scale;
+        hitArea.radius = radius;
         angle = MathUtils.random(0, 360);
     }
 
     public void render(SpriteBatch batch) {
-        batch.draw(texture, position.x - 32, position.y - 32, 32, 32, 64, 64, scale, scale, angle);
+        batch.draw(texture, position.x - radius, position.y - radius, width/2, height/2, width, height, scale, scale, angle);
     }
 
     public void update(float dt) {
