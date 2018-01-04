@@ -1,0 +1,582 @@
+Разобрался с кодом и полностью переписал его. 
+Добавил вращение камней и прикрутил скорость падения в зависимости от размера.
+Конец игры и надпись Game Over.
+Врагов не успел сделать.
+
+/**
+ * ru.silantyevmn
+ * Created by Михаил Силантьев on 29.12.2017.
+ */
+
+public class GameScreen implements Screen {
+    private TextureAtlas atlas;
+    private SpriteBatch batch;
+    private Map map;
+    private Hero hero;
+    private BitmapFont font24;
+    private BitmapFont font96;
+    private Trash[] trashes;
+    private boolean gameOver;
+    private PowerUpsEmitter powerUpsEmitter;
+    private int counter;
+    private TextureRegion textureAsteroid;
+
+    public GameScreen(SpriteBatch batch){
+        this.batch=batch;
+    }
+    @Override
+    public void show() {
+        atlas=new TextureAtlas(Gdx.files.internal("mainpack.pack"));
+        map = new Map(atlas.findRegion("ground"),atlas.findRegion("star16"));
+        map.generateMap();
+        hero = new Hero(map,atlas.findRegion("runner"), 200, 300);
+        textureAsteroid = atlas.findRegion("asteroid64");
+        trashes = new Trash[25];
+        for (int i = 0; i < trashes.length; i++) {
+            trashes[i] = new Trash(textureAsteroid);
+            trashes[i].prepare();
+        }
+        powerUpsEmitter = new PowerUpsEmitter(atlas.findRegion("money"));
+        counter = 0;
+        generateFonts();
+        gameOver = false;
+    }
+    public void generateFonts() {
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("zorque.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter parameters = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        parameters.size = 24;
+        parameters.color = Color.WHITE;
+        parameters.borderWidth = 1;
+        parameters.borderColor = Color.BLACK;
+        parameters.shadowOffsetX = 3;
+        parameters.shadowOffsetY = 3;
+        parameters.shadowColor = Color.BLACK;
+        font24 = generator.generateFont(parameters);
+        parameters.size = 96;
+        font96 = generator.generateFont(parameters);
+        generator.dispose();
+    }
+
+    @Override
+    public void render(float dt) {
+        update(dt);
+        Gdx.gl.glClearColor(0.9f, 0.9f, 1, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        batch.begin();
+        map.render(batch);
+        hero.render(batch);
+        for (int i = 0; i < trashes.length; i++) {
+            trashes[i].render(batch);
+        }
+        powerUpsEmitter.render(batch);
+        hero.renderGUI(batch, font24);
+        if (gameOver) {
+            font96.draw(batch, "Game Over", 330, 400);
+        }
+        batch.end();
+    }
+    private void restart() {
+        gameOver = false;
+        map = new Map(atlas.findRegion("ground"),atlas.findRegion("star16"));
+        map.generateMap();
+        hero = new Hero(map,atlas.findRegion("runner"),200, 300);
+        trashes = new Trash[50];
+        for (int i = 0; i < trashes.length; i++) {
+            trashes[i] = new Trash(textureAsteroid);
+            trashes[i].prepare();
+        }
+    }
+
+    public void update(float dt) {
+        if (hero.getHp() == 0) gameOver = true;
+        if (!gameOver) {
+            counter++;
+            if (counter % 50 == 0) {
+                powerUpsEmitter.createPowerUp(MathUtils.random(0, 1280), MathUtils.random(200, 250), 1.0f);
+            }
+            map.update(dt);
+            hero.update(dt);
+            powerUpsEmitter.update(dt);
+            for (int i = 0; i < trashes.length; i++) {
+                trashes[i].update(dt);
+                if (hero.getHitArea().overlaps(trashes[i].getHitArea())) {
+                    trashes[i].prepare();
+                    hero.takeDamage(5);
+                }
+            }
+            for (int i = 0; i < powerUpsEmitter.getPowerUps().length; i++) {
+                if (hero.getHitArea().contains(powerUpsEmitter.getPowerUps()[i].getPosition()) && powerUpsEmitter.getPowerUps()[i].isActivity()) {
+                    powerUpsEmitter.getPowerUps()[i].use(hero);
+                    powerUpsEmitter.getPowerUps()[i].deactivate();
+                }
+
+            }
+        } else if (Gdx.input.justTouched()) restart();
+    }
+
+    @Override
+    public void resize(int width, int height) {
+
+    }
+
+    @Override
+    public void pause() {
+
+    }
+
+    @Override
+    public void resume() {
+
+    }
+
+    @Override
+    public void hide() {
+
+    }
+
+    @Override
+    public void dispose() {
+        atlas.dispose();
+    }
+}
+
+public class Hero {
+    private final int RADIUS = 35;
+    private TextureRegion[] regions;
+    private Vector2 position;
+    private Vector2 velocity;
+    private Vector2 tempPosition;
+    private Map map;
+    private boolean right;
+    private int maxHp;
+    private int hp;
+    private int money;
+
+    public int getHp() {
+        return hp;
+    }
+
+    private Circle hitArea;
+
+    private float animationTime;
+
+    public Circle getHitArea() {
+        return hitArea;
+    }
+
+    public Hero(Map map,TextureRegion original,float x, float y) {
+        this.map = map;
+        this.position = new Vector2(x, y);
+        this.velocity = new Vector2(0, 0);
+        this.tempPosition = new Vector2(0, 0);
+        this.regions = new TextureRegion(original).split(100, 100)[0]; //разбиваем картинку на массив картинок для анимации
+        this.right = true;
+        this.maxHp = 100;
+        this.hp = this.maxHp;
+        this.hitArea = new Circle(position, RADIUS);
+        this.money = 0;
+    }
+
+    public void addMoney(int amount) {
+        money += amount;
+    }
+
+    public void render(SpriteBatch batch) {
+        //batch.draw(texture, position.x, position.y, 50, 50, 100, 100, 1f, 1f, 0, 0, 0, 100, 100, false, false);
+        int frameIndex = getCurrentFrame();
+        if (!right && !regions[frameIndex].isFlipX()) {
+            regions[frameIndex].flip(true, false);
+        }
+        if (right && regions[frameIndex].isFlipX()) {
+            regions[frameIndex].flip(true, false);
+        }
+        batch.draw(regions[frameIndex], position.x, position.y, 50, 50, 100, 100, 1, 1, 0);
+
+    }
+
+    public void update(float dt) {
+
+        velocity.add(0, -400.0f * dt); //скорость падения
+        velocity.x *= 0.6f; // уменьшаем скорость по х
+        tempPosition.set(position);
+        tempPosition.add(50, 50);
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) { // если нажали D идем вправо
+            velocity.x = 200;
+            right = true;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) { // если нажали A идем влево
+            velocity.x = -200;
+            right = false;
+        }
+        // проверка столкновений персонажа по пикселям
+        float len = velocity.len() * dt;
+        float dx = velocity.x * dt / len;
+        float dy = velocity.y * dt / len;
+        for (int i = 0; i < len; i++) {
+            tempPosition.y += dy;
+            if (checkCollision(tempPosition)) {
+                tempPosition.y -= dy;
+                velocity.y = 0.0f;
+            }
+            tempPosition.x += dx;
+            if (checkCollision(tempPosition)) {
+                tempPosition.x -= dx;
+                velocity.x = 0.0f;
+            }
+        }
+        if (Math.abs(velocity.x) > 1.0f) {
+            if (Math.abs(velocity.y) < 1.0f) {
+                animationTime += (Math.abs(velocity.x) / 1800.0f);
+            }
+        } else {
+            if (getCurrentFrame() > 0) {
+                animationTime += dt * 50.0f;
+            }
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && velocity.y == 0) { //если нажали пробел и персонаж не падает, тогда прыжок
+            velocity.y = 330;
+        }
+        hitArea.setPosition(tempPosition); //обновление окружности персонажа для столкновений с врагами
+        tempPosition.add(-50, -50);
+        position.set(tempPosition);
+    }
+
+    private int getCurrentFrame() {
+        return (int) animationTime % 6;
+    }
+
+    private boolean checkCollision(Vector2 tempPosition) { //стандартная проверка столкновений(окружность вокруг персонажа + radius)
+        for (float i = 0; i < 6.28f; i += 0.1f) {
+            if (!map.checkSpaceIsEmpty(tempPosition.x + RADIUS * (float) Math.cos(i), tempPosition.y + RADIUS * (float) Math.sin(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public void renderGUI(SpriteBatch batch, BitmapFont font48) {
+        font48.draw(batch, "HP: " + hp + " / " + maxHp + "\nMoney:" + money, 20, 700);
+    }
+
+    public void takeDamage(int dmg) {
+        hp -= dmg;
+    }
+}
+
+public class Map {
+    public final char SYM_GROUNG = 'g';
+    private TextureRegion textureGround;
+    private TextureRegion textureSnow;
+    private char[][] data;
+    Snow[] snows;
+
+    public Map(TextureRegion imageGroung,TextureRegion imageSnow) {
+        textureGround = imageGroung;
+        textureSnow = imageSnow;
+        data = new char[32][18];
+        snows = new Snow[100];
+
+    }
+
+    public boolean checkSpaceIsEmpty(float x, float y) {
+        if (x < 0 || x > Gdx.graphics.getWidth()) return false;
+        int cellX = (int) (x / 40);
+        int cellY = (int) (y / 40);
+        return IsCellEmpty(cellX, cellY);
+    }
+
+    private boolean IsCellEmpty(int cellX, int cellY) {
+        if (data[cellX][cellY] == SYM_GROUNG) {
+            return false;
+        }
+        return true;
+    }
+
+    public void generateMap() {
+        int height = 3;// высота
+        int position = 0;
+        fillMap(0, 3, height);
+        position = 4;
+        while (position < 32) {
+            int len = MathUtils.random(2, 4); //длина земли 3-5 кубиков
+            height += MathUtils.random(-2, 2); //высота от -2 до 2
+            if (height < 1) height = 1;
+            if (height > 4) height = 4;
+            fillMap(position, position + len - 1, height);
+            position += len;
+        }
+//        //заполняем массив препятствиями сверху
+//        fillBridge(0,3,7);
+//        position=8;
+//        while (position<32){
+//            int len= MathUtils.random(1,4); //длина кубиков
+//            height=1;
+//            while (!IsCellEmpty(position,height)){
+//                height++;
+//            }
+//            fillBridge(position,position+len-1,height+3);
+//            position+=len+4;
+//        }
+        for (int i = 0; i < snows.length; i++) {
+            snows[i] = new Snow(textureSnow);
+            snows[i].recreate();
+        }
+
+
+    }
+
+    private void fillBridge(int x1, int x2, int height) {
+        if (x2 > 31) x2 = 31;
+        for (int i = x1; i <= x2; i++) {
+            data[i][height] = SYM_GROUNG;
+        }
+    }
+
+    private void fillMap(int x1, int x2, int height) {
+        if (x2 > 31) x2 = 31;
+        for (int i = x1; i <= x2; i++) {
+            for (int j = 0; j < height; j++) {
+                data[i][j] = SYM_GROUNG;
+            }
+
+        }
+    }
+
+    public void render(SpriteBatch batch) {
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[i].length; j++) {
+                if (data[i][j] == SYM_GROUNG) {
+                    batch.draw(textureGround, i * 40, j * 40);
+                }
+            }
+        }
+        for (int i = 0; i < snows.length; i++) {
+            snows[i].render(batch);
+        }
+    }
+
+    public void update(float dt) {
+        for (int i = 0; i < snows.length; i++) {
+            snows[i].update(dt);
+        }
+    }
+
+    public void dispoce() {
+
+    }
+}
+
+public class MyGdxGame extends Game {
+    private SpriteBatch batch;
+    private GameScreen gameScreen;
+
+    @Override
+    public void create() {
+        batch = new SpriteBatch();
+        gameScreen=new GameScreen(batch);
+        setScreen(gameScreen);
+    }
+
+    @Override
+    public void render() {
+        float dt = Gdx.graphics.getDeltaTime();
+        getScreen().render(dt);
+    }
+
+    @Override
+    public void dispose() {
+        batch.dispose();
+    }
+}
+
+public class PowerUp {
+    public enum Type {
+        MONEY_10(0), MONEY_25(1), MONEY_50(2);
+        private int imagePosition;
+
+        public int getImagePosition() {
+            return imagePosition;
+        }
+
+        Type(int imagePosition) {
+            this.imagePosition = imagePosition;
+        }
+    }
+
+    private Vector2 position;
+    private float startY;
+    private boolean activity;
+    private Type type;
+    private float time;
+    private float maxTime;
+
+    public PowerUp() {
+        this.position = new Vector2(0, 0);
+        this.activity = false;
+        this.time = 0.0f;
+        this.maxTime = 3.0f;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public Vector2 getPosition() {
+        return position;
+    }
+
+    public boolean isActivity() {
+        return activity;
+    }
+
+    public void activate(float x, float y) {
+        activity = true;
+        time = 0.0f;
+        position.set(x, y);
+        startY = y;
+        type = Type.values()[MathUtils.random(0, Type.values().length - 1)];
+    }
+
+    public void deactivate() {
+        activity = false;
+    }
+
+    public void update(float dt) {
+        time += dt;
+        position.y = startY + 15 * (float) Math.sin(time * 3.0f);
+        if (time > maxTime) deactivate();
+    }
+
+    public void use(Hero hero) {
+        switch (type) {
+            case MONEY_10:
+                hero.addMoney(10);
+                break;
+            case MONEY_25:
+                hero.addMoney(25);
+                break;
+            case MONEY_50:
+                hero.addMoney(50);
+                break;
+        }
+    }
+}
+
+public class PowerUpsEmitter {
+    private PowerUp[] powerUps;
+    private TextureRegion[] textureRegion;
+
+    public PowerUp[] getPowerUps() {
+        return powerUps;
+    }
+
+    public PowerUpsEmitter(TextureRegion original){
+        this.powerUps=new PowerUp[10];
+        textureRegion=new TextureRegion(original).split(32,32)[0];
+        for (int i = 0; i < powerUps.length; i++) {
+            powerUps[i]=new PowerUp();
+        }
+    }
+    public void render(SpriteBatch batch){
+        for (int i = 0; i < powerUps.length; i++) {
+            if(powerUps[i].isActivity()){
+                batch.draw(textureRegion[powerUps[i].getType().getImagePosition()],powerUps[i].getPosition().x,powerUps[i].getPosition().y);
+            }
+
+        }
+    }
+    public void createPowerUp(float x,float y,float probability){
+        if(Math.random()<probability){
+            for (int i = 0; i < powerUps.length; i++) {
+                if(!powerUps[i].isActivity()){
+                    powerUps[i].activate(x,y);
+                    break;
+                }
+
+            }
+        }
+    }
+    public void update(float dt){
+        for (int i = 0; i < powerUps.length; i++) {
+            if(powerUps[i].isActivity()){
+                powerUps[i].update(dt);
+            }
+
+        }
+    }
+}
+public class Snow {
+    private Vector2 position;
+    private Vector2 velocity;
+    private TextureRegion texture;
+
+    public Snow(TextureRegion texture) {
+        this.position = new Vector2(0, 0);
+        this.velocity = new Vector2(0, 0);
+        this.texture = texture;
+    }
+
+    public void recreate() {
+        this.position.set(MathUtils.random(0, 1280), MathUtils.random(740, 1480));
+        this.velocity.set(MathUtils.random(-50, 50), MathUtils.random(-200, -50));
+    }
+
+    public void render(SpriteBatch batch) {
+        batch.draw(texture, position.x - 8, position.y - 8);
+    }
+
+    public void update(float dt) {
+        this.position.mulAdd(velocity, dt);
+        if (position.x > 1280) position.x = 0;
+        if (position.x < 0) position.x = 1280;
+        if (position.y < 0) recreate();
+    }
+}
+
+public class Trash {
+    private final int RADIUS = 28;
+    private TextureRegion texture;
+    private Vector2 position;
+    private Vector2 velocity;
+    private Circle hitArea;
+    private float scale;
+    private float angle;
+    private float speed;
+
+
+    public Circle getHitArea() {
+        return hitArea;
+    }
+
+    public Trash(TextureRegion texture) {
+        this.texture = texture;
+        this.position = new Vector2(0, 0);
+        this.velocity = new Vector2(0, 0);
+        this.hitArea = new Circle(position, RADIUS);
+        this.speed=-300;
+    }
+
+    public void prepare() {
+        position.set(MathUtils.random(0, 1280), MathUtils.random(1500, 5000));
+        hitArea.setPosition(position);
+        scale = MathUtils.random(0.6f, 0.8f);
+        speed=scale/0.6f*-300;
+        velocity.set(0, speed);
+        hitArea.radius = RADIUS * scale;
+        angle = MathUtils.random(0, 360);
+    }
+
+    public void render(SpriteBatch batch) {
+        batch.draw(texture, position.x - 32, position.y - 32, 32, 32, 64, 64, scale, scale, angle);
+    }
+
+    public void update(float dt) {
+        angle+=dt*200*scale;
+        position.mulAdd(velocity, dt);
+        if (position.y < -100) {
+            prepare();
+        }
+        hitArea.setPosition(position);
+    }
+}
