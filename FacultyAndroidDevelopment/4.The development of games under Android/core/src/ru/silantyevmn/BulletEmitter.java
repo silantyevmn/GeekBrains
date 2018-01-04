@@ -1,5 +1,6 @@
 package ru.silantyevmn;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
@@ -21,7 +22,7 @@ public class BulletEmitter extends ObjectPool<Bullet>{
     }
     public void render(SpriteBatch batch){
         for (int i = 0; i < activeList.size(); i++) {
-            batch.draw(bulletTexture,activeList.get(i).getPosition().x-24,activeList.get(i).getPosition().y-24,24,24,48,48,0.7f,0.7f,0);
+            batch.draw(bulletTexture,activeList.get(i).getPosition().x-16,activeList.get(i).getPosition().y-16,16,16,32,32,2f,2f,0);
         }
     }
     public void update(float dt){
