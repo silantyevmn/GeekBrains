@@ -75,7 +75,8 @@ public class BaseUnit {
             firePressTimer=0;
             float bulletVelX=speed*1.4f; //скорость пули
             if(!right) bulletVelX*=-1;
-            gameScreen.getBulletEmitter().setup(isPlayerFire,position.x+75,position.y+75,bulletVelX,0);
+            gameScreen.getBulletEmitter().setup(isPlayerFire,position.x+75,position.y+50,bulletVelX,0);
+            gameScreen.getSoundFire().play(); //звук при выстреле
         }
     }
 
@@ -142,5 +143,10 @@ public class BaseUnit {
 
     public void takeDamage(int dmg) {
         hp -= dmg;
+    }
+
+    public void addHp(int hpKit){
+        hp+=hpKit;
+        if(hp>maxHp) hp=maxHp;
     }
 }
