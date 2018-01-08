@@ -1,0 +1,502 @@
+1. Разбор кода
+2. Уничтожение ботов
+3. Добавление звука выстрела при стрельбе
+4. Появление новых ботов
+5. Аптечки
+
+************************
+в класс добавил звук при выстреле в метод fire, метод addHp - добавление hp, при подбирании аптечки
+************************
+public class BaseUnit {
+    protected GameScreen gameScreen;
+    protected TextureRegion[] regions;
+    protected Vector2 position;
+    protected Vector2 velocity;
+    protected Vector2 tempPosition;
+    protected Map map;
+    protected boolean right;
+    protected int maxHp;
+    protected int hp;
+    protected float firePressTimer;
+    protected float timeFire;
+    protected int width;
+    protected int height;
+    protected float speed;
+    protected float radius;
+    private Circle hitArea;
+    private float animationTime;
+
+    public int getHp() {
+        return hp;
+    }
+
+    public Circle getHitArea() {
+        return hitArea;
+    }
+
+    public BaseUnit(GameScreen gameScreen,Map map,TextureRegion original,int maxHp,float speed,float radius, float timeFire,float x, float y,int width,int height) {
+        this.gameScreen=gameScreen;
+        this.map = map;
+        this.position = new Vector2(x, y);
+        this.velocity = new Vector2(0, 0);
+        this.tempPosition = new Vector2(0, 0);
+        this.width=width;
+        this.height=height;
+        this.regions = new TextureRegion(original).split(width, height)[0]; //разбиваем картинку на массив картинок для анимации
+        this.right = true;
+        this.maxHp = maxHp;
+        this.hp = this.maxHp;
+        this.radius=radius;
+        this.hitArea = new Circle(position, radius);
+        this.timeFire=timeFire;
+        this.speed=speed;
+    }
+    public void moveLeft(){
+        velocity.x = -speed;
+        right = false;
+    }
+    public void moveRight(){
+        velocity.x = speed;
+        right = true;
+    }
+    public void jump(){
+        if (Math.abs(velocity.y)<0.1f) { // прыжок
+            velocity.y = speed;
+        }
+    }
+    public void fire(float dt,boolean isPlayerFire){
+        this.firePressTimer+=dt;
+        if(firePressTimer>timeFire){
+            firePressTimer=0;
+            float bulletVelX=speed*1.4f; //скорость пули
+            if(!right) bulletVelX*=-1;
+            gameScreen.getBulletEmitter().setup(isPlayerFire,position.x+75,position.y+50,bulletVelX,0);
+            gameScreen.getSoundFire().play(); //звук при выстреле
+        }
+    }
+
+    public void render(SpriteBatch batch) {
+        int frameIndex = getCurrentFrame();
+        if (!right && !regions[frameIndex].isFlipX()) {
+            regions[frameIndex].flip(true, false);
+        }
+        if (right && regions[frameIndex].isFlipX()) {
+            regions[frameIndex].flip(true, false);
+        }
+        batch.draw(regions[frameIndex], position.x, position.y, width/2, height/2, width, height, 1, 1, 0);
+    }
+
+    public void update(float dt) {
+        velocity.add(0, -400.0f * dt); //скорость падения
+        velocity.x *= 0.6f; // уменьшаем скорость по х
+        tempPosition.set(position);
+        tempPosition.add(width/2, height/2);
+
+        // проверка столкновений персонажа по пикселям
+        float len = velocity.len() * dt;
+        float dx = velocity.x * dt / len;
+        float dy = velocity.y * dt / len;
+        for (int i = 0; i < len; i++) {
+            tempPosition.y += dy;
+            if (checkCollision(tempPosition)) {
+                tempPosition.y -= dy;
+                velocity.y = 0.0f;
+            }
+            tempPosition.x += dx;
+            if (checkCollision(tempPosition)) {
+                tempPosition.x -= dx;
+                velocity.x = 0.0f;
+            }
+        }
+        if (Math.abs(velocity.x) > 1.0f) {
+            if (Math.abs(velocity.y) < 1.0f) {
+                animationTime += (Math.abs(velocity.x) / 1800.0f);
+            }
+        } else {
+            if (getCurrentFrame() > 0) {
+                animationTime += dt * 50.0f;
+            }
+        }
+
+        hitArea.setPosition(tempPosition); //обновление окружности персонажа для столкновений с врагами
+        tempPosition.add(-width/2, -height/2);
+        position.set(tempPosition);
+    }
+
+    public int getCurrentFrame() {
+        return (int) animationTime % regions.length;
+    }
+
+    private boolean checkCollision(Vector2 tempPosition) { //стандартная проверка столкновений(окружность вокруг персонажа + radius)
+        for (float i = 0; i < 6.28f; i += 0.1f) {
+            if (!map.checkSpaceIsEmpty(tempPosition.x + hitArea.radius * (float) Math.cos(i), tempPosition.y + hitArea.radius * (float) Math.sin(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void takeDamage(int dmg) {
+        hp -= dmg;
+    }
+
+    public void addHp(int hpKit){
+        hp+=hpKit;
+        if(hp>maxHp) hp=maxHp;
+    }
+}
+***************************************************
+в класс добавил звук при выстреле, проверка на попадание камней в монстра, проверка попадания пуль в монстра,
+проверка попадание пуль в героя, убивание и появление монстра.
+***************************************************
+public class GameScreen implements Screen {
+    private TextureAtlas atlas;
+    private SpriteBatch batch;
+    private Map map;
+    private Hero hero;
+    private Monster monster;
+    private BitmapFont font24;
+    private BitmapFont font96;
+    private Trash[] trashes;
+    private boolean gameOver;
+    private PowerUpsEmitter powerUpsEmitter;
+    private BulletEmitter bulletEmitter;
+    private int counter;
+    private TextureRegion textureAsteroid;
+    private ShapeRenderer shapeRenderer;
+    private static final boolean DEBUG_MODE = true;
+    private Sound soundFire;
+
+    public Sound getSoundFire() {
+        return soundFire;
+    }
+
+    public Hero getHero() {
+        return hero;
+    }
+
+    public BulletEmitter getBulletEmitter() {
+        return bulletEmitter;
+    }
+
+    public GameScreen(SpriteBatch batch) {
+        this.batch = batch;
+    }
+
+    @Override
+    public void show() {
+        soundFire=Gdx.audio.newSound(Gdx.files.internal("laser.wav"));
+        atlas = new TextureAtlas(Gdx.files.internal("mainpack.pack"));
+        map = new Map(atlas.findRegion("ground"), atlas.findRegion("star16"));
+        map.generateMap();
+        hero = new Hero(this, map, atlas.findRegion("runner"), 200, 300);
+        monster = new Monster(this, map, atlas.findRegion("runner"), 700, 300);
+        textureAsteroid = atlas.findRegion("asteroid64");
+        trashes = new Trash[25];
+        for (int i = 0; i < trashes.length; i++) {
+            trashes[i] = new Trash(textureAsteroid);
+            trashes[i].prepare();
+        }
+        powerUpsEmitter = new PowerUpsEmitter(atlas.findRegion("powerUps"));
+        bulletEmitter = new BulletEmitter(atlas.findRegion("bullet48"), 100); // создаем 100 пуль
+        if (DEBUG_MODE) {
+            shapeRenderer = new ShapeRenderer();
+            shapeRenderer.setAutoShapeType(true);
+        }
+        counter = 0;
+        generateFonts();
+        gameOver = false;
+    }
+
+    private void restart() {
+        gameOver = false;
+        map.generateMap();
+        hero = new Hero(this, map, atlas.findRegion("runner"), 200, 300);
+        monster = new Monster(this, map, atlas.findRegion("runner"), 700, 300);
+        for (int i = 0; i < trashes.length; i++) {
+            trashes[i].prepare();
+        }
+        counter = 0;
+    }
+
+    public void generateFonts() {
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("zorque.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter parameters = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        parameters.size = 24;
+        parameters.color = Color.WHITE;
+        parameters.borderWidth = 1;
+        parameters.borderColor = Color.BLACK;
+        parameters.shadowOffsetX = 3;
+        parameters.shadowOffsetY = 3;
+        parameters.shadowColor = Color.BLACK;
+        font24 = generator.generateFont(parameters);
+        parameters.size = 96;
+        font96 = generator.generateFont(parameters);
+        generator.dispose();
+    }
+
+    @Override
+    public void render(float dt) {
+        update(dt);
+        Gdx.gl.glClearColor(0.9f, 0.9f, 1, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        batch.begin();
+        map.render(batch);
+        hero.render(batch);
+        monster.render(batch);
+        for (int i = 0; i < trashes.length; i++) {
+            trashes[i].render(batch);
+        }
+        powerUpsEmitter.render(batch);
+        bulletEmitter.render(batch);
+        hero.renderGUI(batch, font24);
+        if (gameOver) {
+            font96.draw(batch, "Game Over", 330, 400);
+        }
+        batch.end();
+        if (DEBUG_MODE) {
+            shapeRenderer.begin();
+            shapeRenderer.circle(hero.getHitArea().x, hero.getHitArea().y, hero.getHitArea().radius);
+            shapeRenderer.end();
+        }
+    }
+
+    public void update(float dt) {
+        if (hero.getHp() <= 0) {
+            hero.hp=0;
+            gameOver = true;
+        }
+        if (monster.getHp() <= 0) monster.deactivate();
+        if (!gameOver) {
+            counter++;
+            if (counter % 50 == 0) {
+                powerUpsEmitter.createPowerUp(MathUtils.random(0, 1280), MathUtils.random(200, 250), 1.0f);
+            }
+            map.update(dt);
+            hero.update(dt);
+            monster.update(dt);
+            bulletEmitter.update(dt);
+            powerUpsEmitter.update(dt);
+            for (int i = 0; i < trashes.length; i++) {
+                trashes[i].update(dt);
+                if (hero.getHitArea().overlaps(trashes[i].getHitArea())) {
+                    trashes[i].prepare();
+                    hero.takeDamage(5);
+                }
+                //проверка на попадание камней в монстра
+                if (monster.getHitArea().overlaps(trashes[i].getHitArea())) {
+                    trashes[i].prepare();
+                    monster.takeDamage(10);
+                }
+                //проверка на попадание пуль
+                for (int j = 0; j < bulletEmitter.getActiveList().size(); j++) {
+                    Bullet b=bulletEmitter.getActiveList().get(j);
+                    if(monster.getHitArea().contains(b.getPosition()) && b.isPlayersBullet() && monster.isActivity()){
+                        monster.takeDamage(50);
+                        b.deactivate();
+                    }
+                    if(hero.getHitArea().contains(b.getPosition()) && !b.isPlayersBullet() ){
+                        hero.takeDamage(5);
+                        b.deactivate();
+                    }
+                    if(trashes[i].getHitArea().contains(b.getPosition())){
+                        trashes[i].prepare();
+                        b.deactivate();
+                    }
+                    bulletEmitter.checkPool();
+                }
+
+            }
+            for (int i = 0; i < powerUpsEmitter.getPowerUps().length; i++) {
+                if (hero.getHitArea().contains(powerUpsEmitter.getPowerUps()[i].getPosition()) && powerUpsEmitter.getPowerUps()[i].isActivity()) {
+                    powerUpsEmitter.getPowerUps()[i].use(hero);
+                    powerUpsEmitter.getPowerUps()[i].deactivate();
+                }
+
+            }
+
+            //bulletEmitter.checkPool();
+
+
+        } else if (Gdx.input.justTouched()) restart();
+
+    }
+
+    @Override
+    public void resize(int width, int height) {
+
+    }
+
+    @Override
+    public void pause() {
+
+    }
+
+    @Override
+    public void resume() {
+
+    }
+
+    @Override
+    public void hide() {
+
+    }
+
+    @Override
+    public void dispose() {
+        if (DEBUG_MODE) {
+            shapeRenderer.dispose();
+        }
+    }
+}
+***************************************
+добавил активавация монстра и деактивация его,
+время на появление монстра timeMonster;
+***************************************
+public class Monster extends BaseUnit {
+    private boolean activity;
+    private float timeMonster;
+    private float time;
+
+    public boolean isActivity() {
+        return this.activity;
+    }
+
+    public Monster(GameScreen gameScreen, Map map, TextureRegion original, float x, float y) {
+        super(gameScreen, map, original, 100, 250.0f, 35, 3.0f, x, y, 100, 100);
+        timeMonster = 3.0f;
+        activate(x, y);
+    }
+
+    public void activate(float x, float y) {
+        this.activity = true;
+        position.set(x, y);
+        hp = maxHp;
+        time = 0;
+    }
+
+    public void deactivate() {
+        this.activity = false;
+    }
+
+    @Override
+    public void render(SpriteBatch batch) {
+        if (isActivity()) {
+            batch.setColor(Color.RED);
+            super.render(batch);
+            batch.setColor(Color.WHITE);
+        }
+    }
+
+    @Override
+    public void update(float dt) {
+        //отчет времени на появление монстра
+        if (!isActivity()) {
+            time += dt;
+            if (time > timeMonster) {
+                time = 0;
+                activate(MathUtils.random(700, 1100), MathUtils.random(300, 400));
+            }
+        } else {
+            fire(dt, false);
+            if (Math.abs(gameScreen.getHero().position.x - position.x) > 100.0f) {
+                if (gameScreen.getHero().position.x > position.x) { // если персонаж правее идем вправо
+                    moveRight();
+                }
+                if (gameScreen.getHero().position.x < position.x) { // если персонаж левее идем влево
+                    moveLeft();
+                }
+            }
+            super.update(dt);
+            if (Math.abs(gameScreen.getHero().position.x - position.x) > 100.0f) {
+                if (Math.abs(velocity.x) < 0.1f) { //если препятствие, тогда прыжок
+                    jump();
+                }
+            }
+        }
+
+
+    }
+
+}
+*****************************
+добавлена аптечка,
+*****************************
+public class PowerUp {
+    public enum Type {
+        MONEY_10(0), MONEY_25(1), MONEY_50(2), MED_KIT(3);
+        private int imagePosition;
+
+        public int getImagePosition() {
+            return imagePosition;
+        }
+
+        Type(int imagePosition) {
+            this.imagePosition = imagePosition;
+        }
+    }
+
+    private Vector2 position;
+    private float startY;
+    private boolean activity;
+    private Type type;
+    private float time;
+    private float maxTime;
+
+    public PowerUp() {
+        this.position = new Vector2(0, 0);
+        this.activity = false;
+        this.time = 0.0f;
+        this.maxTime = 3.0f;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public Vector2 getPosition() {
+        return position;
+    }
+
+    public boolean isActivity() {
+        return activity;
+    }
+
+    public void activate(float x, float y) {
+        activity = true;
+        time = 0.0f;
+        position.set(x, y);
+        startY = y;
+        type = Type.values()[MathUtils.random(0, Type.values().length - 1)];
+        if(type==Type.MED_KIT){ // аптечка появляется реже
+            if(Math.random()>0.3f) type = Type.values()[MathUtils.random(0, Type.values().length - 2)];
+        }
+    }
+
+    public void deactivate() {
+        activity = false;
+    }
+
+    public void update(float dt) {
+        time += dt;
+        position.y = startY + 15 * (float) Math.sin(time * 3.0f);
+        if (time > maxTime) deactivate();
+    }
+
+    public void use(Hero hero) {
+        switch (type) {
+            case MONEY_10:
+                hero.addMoney(10);
+                break;
+            case MONEY_25:
+                hero.addMoney(25);
+                break;
+            case MONEY_50:
+                hero.addMoney(50);
+                break;
+            case MED_KIT:
+                hero.addHp(50);
+                break;
+        }
+    }
+}
