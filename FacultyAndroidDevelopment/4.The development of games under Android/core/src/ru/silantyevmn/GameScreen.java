@@ -1,6 +1,7 @@
 package ru.silantyevmn;
 
 import com.badlogic.gdx.*;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -28,15 +29,14 @@ public class GameScreen implements Screen {
     private TextureRegion textureAsteroid;
     private ShapeRenderer shapeRenderer;
     private static final boolean DEBUG_MODE = true;
-    private float time;
+    private Sound soundFire;
 
+    public Sound getSoundFire() {
+        return soundFire;
+    }
 
     public Hero getHero() {
         return hero;
-    }
-
-    public Monster getMonster() {
-        return monster;
     }
 
     public BulletEmitter getBulletEmitter() {
@@ -49,6 +49,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
+        soundFire=Gdx.audio.newSound(Gdx.files.internal("laser.wav"));
         atlas = new TextureAtlas(Gdx.files.internal("mainpack.pack"));
         map = new Map(atlas.findRegion("ground"), atlas.findRegion("star16"));
         map.generateMap();
@@ -60,8 +61,8 @@ public class GameScreen implements Screen {
             trashes[i] = new Trash(textureAsteroid);
             trashes[i].prepare();
         }
-        powerUpsEmitter = new PowerUpsEmitter(atlas.findRegion("money"));
-        bulletEmitter = new BulletEmitter(atlas.findRegion("star16"), 100); // создаем 100 пуль
+        powerUpsEmitter = new PowerUpsEmitter(atlas.findRegion("powerUps"));
+        bulletEmitter = new BulletEmitter(atlas.findRegion("bullet48"), 100); // создаем 100 пуль
         if (DEBUG_MODE) {
             shapeRenderer = new ShapeRenderer();
             shapeRenderer.setAutoShapeType(true);
