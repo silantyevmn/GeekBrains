@@ -117,3 +117,4 @@ Thumbs.db
 !/ios-moe/xcode/*.xcodeproj/project.pbxproj
 /ios-moe/xcode/native/
 /4-Lesson5.7z
+*.7z
