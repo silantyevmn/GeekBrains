@@ -41,4 +41,5 @@ public class Hero extends BaseUnit {
     public void renderGUI(SpriteBatch batch, BitmapFont font48) {
         font48.draw(batch, "HP: " + hp + " / " + maxHp + "\nMoney:" + money, 20, 700);
     }
+
 }
