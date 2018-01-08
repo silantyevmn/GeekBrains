@@ -9,7 +9,7 @@ import com.badlogic.gdx.math.Vector2;
  */
 public class PowerUp {
     public enum Type {
-        MONEY_10(0), MONEY_25(1), MONEY_50(2);
+        MONEY_10(0), MONEY_25(1), MONEY_50(2), MED_KIT(3);
         private int imagePosition;
 
         public int getImagePosition() {
@@ -53,6 +53,9 @@ public class PowerUp {
         position.set(x, y);
         startY = y;
         type = Type.values()[MathUtils.random(0, Type.values().length - 1)];
+        if(type==Type.MED_KIT){ // аптечка появляется реже
+            if(Math.random()>0.3f) type = Type.values()[MathUtils.random(0, Type.values().length - 2)];
+        }
     }
 
     public void deactivate() {
@@ -75,6 +78,9 @@ public class PowerUp {
                 break;
             case MONEY_50:
                 hero.addMoney(50);
+                break;
+            case MED_KIT:
+                hero.addHp(50);
                 break;
         }
     }
