@@ -1,5 +1,5 @@
-name=mainpack
-filename=mainpack.pack
+name=mainPack
+filename=mainPack.pack
 input=texturePack
 output=
 
@@ -16,8 +16,8 @@ edgePadding=true
 ignoreBlankImages=true
 incremental=false
 incrementalFilePath=
-maxHeight=1024
-maxWidth=1024
+maxHeight=2048
+maxWidth=2048
 minHeight=128
 minWidth=128
 padding=2
