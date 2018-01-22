@@ -1,0 +1,52 @@
+﻿
+Вопросы:
+*Как можно заставить развернуть кнопку на 90,180 градусов?
+*При зажатии на экранную кнопку влево или вправо персонаж немного двинется и останавливается, хотя кнопка нажата, как заставить его бежать?
+
+Управление на экране к проекту в GameScreen добавил метод, ниже код:
+
+private void createGui() {
+        stage = new Stage(ScreenManager.getInstance().getViewport(), batch);
+        Gdx.input.setInputProcessor(stage);
+        skin = new Skin();
+        skin.addRegions(Assets.getInstance().getAtlas());
+        skin.add("font24", font24);
+
+        TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+        textButtonStyle.up = skin.getDrawable("menuBtn");
+        textButtonStyle.font=skin.getFont("font24");
+        skin.add("simpleBtn", textButtonStyle);
+
+        Button btnUp = new TextButton("^",skin, "simpleBtn");
+        btnUp.setBounds(140,140,64,64);
+        Button btnRight=new TextButton((">"),skin,"simpleBtn");
+        btnRight.setBounds(214,66,64,64);
+        Button btnLeft=new TextButton(("<"),skin,"simpleBtn");
+        btnLeft.setBounds(66,66,64,64);
+        Button btnFire=new TextButton(("*"),skin,"simpleBtn");
+        btnFire.setBounds(1150,66,64,64);
+        //btnLeft.setPosition(140, 140);
+
+        stage.addActor(btnUp);
+        stage.addActor(btnRight);
+        stage.addActor(btnLeft);
+        stage.addActor(btnFire);
+
+        btnUp.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                hero.jump();
+            }
+        });
+        btnRight.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {hero.moveRight();}
+        });
+        btnLeft.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {hero.moveLeft();}
+        });
+        btnFire.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {hero.fire(0.1f,true);}
+        });
