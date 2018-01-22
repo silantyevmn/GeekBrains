@@ -1,0 +1,75 @@
+
+texturePack1.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+ground
+  rotate: false
+  xy: 2, 2
+  size: 512, 128
+  orig: 512, 128
+  offset: 0, 0
+  index: -1
+knight
+  rotate: false
+  xy: 516, 2
+  size: 1200, 100
+  orig: 1200, 100
+  offset: 0, 0
+  index: -1
+shopItems
+  rotate: false
+  xy: 516, 104
+  size: 800, 100
+  orig: 800, 100
+  offset: 0, 0
+  index: -1
+bear
+  rotate: false
+  xy: 516, 206
+  size: 800, 100
+  orig: 800, 100
+  offset: 0, 0
+  index: -1
+runner
+  rotate: false
+  xy: 516, 308
+  size: 600, 100
+  orig: 600, 100
+  offset: 0, 0
+  index: -1
+menuBtn
+  rotate: false
+  xy: 2, 132
+  size: 480, 100
+  orig: 480, 100
+  offset: 0, 0
+  index: -1
+asteroid64
+  rotate: false
+  xy: 2, 234
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+bullet48
+  rotate: false
+  xy: 2, 300
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+powerUps
+  rotate: false
+  xy: 68, 234
+  size: 128, 32
+  orig: 128, 32
+  offset: 0, 0
+  index: -1
+star16
+  rotate: false
+  xy: 484, 132
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
